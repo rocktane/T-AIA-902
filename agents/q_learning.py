@@ -1,5 +1,6 @@
 from agents import BaseAgent
 import numpy as np
+import time
 
 class QLearning(BaseAgent):
 
@@ -17,9 +18,15 @@ class QLearning(BaseAgent):
             action = self.env.action_space.sample()
         return action
 
-    def train(self, n_episodes):
-        self.decay_rate = (0.05 / 0.9) ** (1 / n_episodes)
-        for episode in range(n_episodes):
+    def train(self, n_episodes=None, time_limit=None):
+        self.decay_rate = (0.05 / 0.9) ** (1 / (n_episodes or 10000))
+        episode = 0
+        start = time.time()
+        while True:
+            if n_episodes is not None and episode >= n_episodes:
+                break
+            if time_limit is not None and time.time() - start >= time_limit:
+                break
             state, info = self.env.reset()
             done = False
             while not done:
@@ -29,4 +36,5 @@ class QLearning(BaseAgent):
                 state, reward, terminated, truncated, info = self.env.step(action)
                 self.q_table[current_state, action] = current_q + self.lr * (float(reward) + self.gamma * np.max(self.q_table[state]) - current_q)
                 done = terminated or truncated
+            episode += 1
             self.epsilon = max(0.05, self.epsilon * self.decay_rate)

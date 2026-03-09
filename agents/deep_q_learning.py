@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from agents import BaseAgent
 import random
+import time
 
 class DQNetwork(nn.Module):
     def __init__(self):
@@ -49,9 +50,15 @@ class DeepQLearning(BaseAgent):
             action = self.env.action_space.sample()
         return action
 
-    def train(self, n_episodes):
-        self.decay_rate = (0.05 / 0.9) ** (1 / n_episodes)
-        for episode in range(n_episodes):
+    def train(self, n_episodes=None, time_limit=None):
+        episode = 0
+        start_time = time.time()
+        self.decay_rate = (0.05 / 0.9) ** (1 / (n_episodes or 10000))
+        while True:
+            if n_episodes is not None and episode >= n_episodes:
+                break
+            if time_limit is not None and time.time() - start_time >= time_limit:
+                break
             state, info = self.env.reset()
             done = False
             while not done:
@@ -67,26 +74,23 @@ class DeepQLearning(BaseAgent):
                 # 2. si assez d'expériences → piocher un batch → entraîner
                 if len(self.replay_buffer) >= self.batch_size:
                     batch = random.sample(self.replay_buffer, self.batch_size)
-                    if len(self.replay_buffer) >= self.batch_size:
-                        batch = random.sample(self.replay_buffer, self.batch_size)
+                    states = torch.stack([self.encode_state(s) for s, _, _, _, _ in batch])
+                    actions = torch.tensor([a for _, a, _, _, _ in batch])
+                    rewards = torch.tensor([float(r) for _, _, r, _, _ in batch])
+                    next_states = torch.stack([self.encode_state(s) for _, _, _, s, _ in batch])
+                    dones = torch.tensor([float(d) for _, _, _, _, d in batch])
 
-                        states = torch.stack([self.encode_state(s) for s, _, _, _, _ in batch])
-                        actions = torch.tensor([a for _, a, _, _, _ in batch])
-                        rewards = torch.tensor([float(r) for _, _, r, _, _ in batch])
-                        next_states = torch.stack([self.encode_state(s) for _, _, _, s, _ in batch])
-                        dones = torch.tensor([float(d) for _, _, _, _, d in batch])
+                    # Prédictions : Q(s, a) pour chaque expérience du batch
+                    predictions = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze()
 
-                        # Prédictions : Q(s, a) pour chaque expérience du batch
-                        predictions = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze()
+                    # Cibles : r + gamma * max(Q_target(s')) * (1 - done)
+                    with torch.no_grad():
+                        targets = rewards + self.gamma * self.target_net(next_states).max(1)[0] * (1 - dones)
 
-                        # Cibles : r + gamma * max(Q_target(s')) * (1 - done)
-                        with torch.no_grad():
-                            targets = rewards + self.gamma * self.target_net(next_states).max(1)[0] * (1 - dones)
-
-                        loss = self.loss_fn(predictions, targets)
-                        self.optimizer.zero_grad()
-                        loss.backward()
-                        self.optimizer.step()
+                    loss = self.loss_fn(predictions, targets)
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    self.optimizer.step()
                 state = next_state
                 self.step_count += 1
                 if self.step_count % self.update_target_every == 0:
