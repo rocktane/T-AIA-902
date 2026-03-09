@@ -1,14 +1,14 @@
 from agents import BaseAgent
 import numpy as np
 
-class Sarsa(BaseAgent):
+class MonteCarlo(BaseAgent):
 
     def __init__(self):
         super().__init__()
         self.q_table = np.zeros((self.env.observation_space.n, self.env.action_space.n)) # type: ignore
         self.epsilon = 0.9
         self.gamma = 0.99
-        self.lr = 0.2
+        self.lr = 0.1
 
     def choose_action(self, state):
         if np.random.random() > self.epsilon:
@@ -21,15 +21,17 @@ class Sarsa(BaseAgent):
         self.decay_rate = (0.05 / 0.9) ** (1 / n_episodes)
         for episode in range(n_episodes):
             state, info = self.env.reset()
-            next_action = None
             done = False
+            episodes = []
             while not done:
-                action = next_action if next_action is not None else self.choose_action(state)
-                current_q = self.q_table[state, action]
-                current_state = state
+                action = self.choose_action(state)
                 next_state, reward, terminated, truncated, info = self.env.step(action)
-                next_action = self.choose_action(next_state)
-                self.q_table[current_state, action] = current_q + self.lr * (float(reward) + self.gamma * self.q_table[next_state, next_action] - current_q)
+                episodes.append((state, action, reward))
                 state = next_state
                 done = terminated or truncated
+            G = 0
+            for state, action, reward in reversed(episodes):
+                G = float(reward) + self.gamma * G
+                self.q_table[state, action] += self.lr * (G - self.q_table[state, action])
             self.epsilon = max(0.05, self.epsilon * self.decay_rate)
+        return

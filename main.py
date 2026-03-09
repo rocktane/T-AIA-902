@@ -1,42 +1,73 @@
-import gymnasium as gym
-import numpy as np
+import questionary
+from agents.bruteforce import Bruteforce
+from agents.monte_carlo import MonteCarlo
+from agents.q_learning import QLearning
+from agents.deep_q_learning import DeepQLearning
+from agents.sarsa import Sarsa
+from tabulate import tabulate
 
-env = gym.make("FrozenLake-v1", render_mode="ansi")
-env.reset()
-print(env.render())
+tab = [["Target", 7, 13, "100.0%"]]
 
-n_episodes = 60100
-q_table = np.zeros((16, 4))
-lr = 0.05
-gamma = 0.99
-epsilon = 0.9
-decay_rate = (0.05 / 0.9) ** (1 / n_episodes)
-counter = 0
-visit_count = np.zeros((16, 4))
+choices = questionary.checkbox(
+    "Choisir les agents à tester :",
+    choices=["Bruteforce", "Q-Learning", "SARSA", "Monte Carlo", "Deep Q-Learning"]
+).ask()
 
-for episode in range(n_episodes):
-    state, info = env.reset()
-    done = False
+ep_q_learning = 10000
+ep_sarsa = 20000
+ep_monte_carlo = 100000
+ep_deep_q_learning = 1000
 
-    while not done:
-        if np.random.random() > epsilon:
-            action = np.argmax(q_table[state])
-        else:
-            action = env.action_space.sample()
-        current_q = q_table[state, action]
-        current_state = state
-        visit_count[state, action] += 1
-        lr = 1.0 / (1 + 0.001 * visit_count[state, action])
-        state, reward, terminated, truncated, info = env.step(action)
-        next_max = np.max(q_table[state])
-        q_table[current_state, action] = current_q + lr * (float(reward) + gamma * next_max - current_q)
-        if episode > n_episodes - 100 and reward == 1:
-            counter += 1
-        done = terminated or truncated
+for choice in choices:
+    if choice == "Q-Learning":
+        ep_q_learning = questionary.text(
+            "Combien d'épisodes à entraîner pour Q-Learning ?",
+            default=str(ep_q_learning),
+            validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= 100000
+        ).ask()
+    elif choice == "SARSA":
+        ep_sarsa = questionary.text(
+            "Combien d'épisodes à entraîner pour SARSA ?",
+            default=str(ep_sarsa),
+            validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= 100000
+        ).ask()
+    elif choice == "Monte Carlo":
+        ep_monte_carlo = questionary.text(
+            "Combien d'épisodes à entraîner pour Monte Carlo ?",
+            default=str(ep_monte_carlo),
+            validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= 100000
+        ).ask()
+    elif choice == "Deep Q-Learning":
+        ep_deep_q_learning = questionary.text(
+            "Combien d'épisodes à entraîner pour Deep Q-Learning ?",
+            default=str(ep_deep_q_learning),
+            validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= 10000
+        ).ask()
 
-    if episode > 60000:
-        epsilon = 0
-    else:
-        epsilon = max(0.05, epsilon * decay_rate)
+episodes_test = questionary.text(
+    "Combien d'épisodes à tester ?",
+    default="100",
+    validate=lambda x: x.isdigit() and int(x) > 0 and int(x) < 1000
+).ask()
 
-print(f"Taux de succès: {100 * counter / 100:.1f}%")
+for choice in choices:
+    if choice == "Bruteforce":
+        tab.append(Bruteforce().test(episodes_test))
+    elif choice == "Q-Learning":
+        agent = QLearning()
+        agent.train(int(ep_q_learning))
+        tab.append(agent.test(int(episodes_test)))
+    elif choice == "SARSA":
+        agent = Sarsa()
+        agent.train(int(ep_sarsa))
+        tab.append(agent.test(int(episodes_test)))
+    elif choice == "Monte Carlo":
+        agent = MonteCarlo()
+        agent.train(int(ep_monte_carlo))
+        tab.append(agent.test(int(episodes_test)))
+    elif choice == "Deep Q-Learning":
+        agent = DeepQLearning()
+        agent.train(int(ep_deep_q_learning))
+        tab.append(agent.test(int(episodes_test)))
+
+print(tabulate(tab, headers=["Agent", "Récompense moyenne", "Nombre de pas moyen", "Taux de succès"], tablefmt="rounded_outline"))
