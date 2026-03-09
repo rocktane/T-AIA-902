@@ -22,7 +22,13 @@ class Sarsa(BaseAgent):
         self.decay_rate = (0.05 / 0.9) ** (1 / (n_episodes or 10000))
         episode = 0
         start_time = time.time()
+        training_time = 0
+        steps_history = []
+        reward_history = []
+        success_history = []
         while True:
+            total_reward = 0
+            total_steps = 0
             if n_episodes is not None and episode >= n_episodes:
                 break
             if time_limit is not None and time.time() - start_time >= time_limit:
@@ -37,6 +43,20 @@ class Sarsa(BaseAgent):
                 next_state, reward, terminated, truncated, info = self.env.step(action)
                 next_action = self.choose_action(next_state)
                 self.q_table[current_state, action] = current_q + self.lr * (float(reward) + self.gamma * self.q_table[next_state, next_action] - current_q)
+                total_reward += float(reward)
+                total_steps += 1
                 state = next_state
                 done = terminated or truncated
+            reward_history.append(total_reward)
+            steps_history.append(total_steps)
+            episode += 1
+            success_history.append(1 if terminated else 0)
             self.epsilon = max(0.05, self.epsilon * self.decay_rate)
+        training_time = time.time() - start_time
+        return {
+            "reward_history": reward_history,
+            "steps_history": steps_history,
+            "training_time": training_time,
+            "n_episodes": episode,
+            "success_history": success_history,
+        }

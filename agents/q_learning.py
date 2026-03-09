@@ -22,7 +22,13 @@ class QLearning(BaseAgent):
         self.decay_rate = (0.05 / 0.9) ** (1 / (n_episodes or 10000))
         episode = 0
         start = time.time()
+        reward_history = []
+        steps_history = []
+        training_time = 0
+        success_history = []
         while True:
+            total_reward = 0
+            total_steps = 0
             if n_episodes is not None and episode >= n_episodes:
                 break
             if time_limit is not None and time.time() - start >= time_limit:
@@ -36,5 +42,18 @@ class QLearning(BaseAgent):
                 state, reward, terminated, truncated, info = self.env.step(action)
                 self.q_table[current_state, action] = current_q + self.lr * (float(reward) + self.gamma * np.max(self.q_table[state]) - current_q)
                 done = terminated or truncated
+                total_reward += float(reward)
+                total_steps += 1
+            success_history.append(1 if terminated else 0)
+            reward_history.append(total_reward)
+            steps_history.append(total_steps)
             episode += 1
             self.epsilon = max(0.05, self.epsilon * self.decay_rate)
+        training_time = time.time() - start
+        return {
+            "reward_history": reward_history,
+            "steps_history": steps_history,
+            "training_time": training_time,
+            "n_episodes": episode,
+            "success_history": success_history,
+        }

@@ -54,7 +54,13 @@ class DeepQLearning(BaseAgent):
         episode = 0
         start_time = time.time()
         self.decay_rate = (0.05 / 0.9) ** (1 / (n_episodes or 10000))
+        reward_history = []
+        steps_history = []
+        training_time = 0
+        success_history = []
         while True:
+            total_reward = 0
+            total_steps = 0
             if n_episodes is not None and episode >= n_episodes:
                 break
             if time_limit is not None and time.time() - start_time >= time_limit:
@@ -92,7 +98,21 @@ class DeepQLearning(BaseAgent):
                     loss.backward()
                     self.optimizer.step()
                 state = next_state
+                total_reward += float(reward)
+                total_steps += 1
                 self.step_count += 1
                 if self.step_count % self.update_target_every == 0:
                     self.target_net.load_state_dict(self.policy_net.state_dict())
+            success_history.append(1 if terminated else 0)
+            reward_history.append(total_reward)
+            steps_history.append(total_steps)
+            episode += 1
             self.epsilon = max(0.05, self.epsilon * self.decay_rate)
+        training_time = time.time() - start_time
+        return {
+            "reward_history": reward_history,
+            "steps_history": steps_history,
+            "training_time": training_time,
+            "n_episodes": episode,
+            "success_history": success_history,
+        }
