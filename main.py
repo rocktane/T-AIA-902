@@ -5,7 +5,9 @@ from agents.q_learning import QLearning
 from agents.deep_q_learning import DeepQLearning
 from agents.sarsa import Sarsa
 from tabulate import tabulate
+from report import generate_report
 
+results = {}
 mode = questionary.select(
     "Choisir le mode :",
     choices=["Manuel", "Temps limité"]
@@ -21,23 +23,33 @@ if mode == "Temps limité":
     ).ask()
     time_limit = int(time_limit)
     # Bruteforce
-    tab.append(Bruteforce().test(10))
+    t = Bruteforce().test(10)
+    tab.append(t)
+    results["Bruteforce"] = {"train": None, "test": ["Bruteforce", t[1], t[2], t[3]]}
     # Q-Learning
     agent = QLearning()
-    agent.train(time_limit=time_limit)
-    tab.append(agent.test(10))
+    train_data = agent.train(time_limit=time_limit)
+    t = agent.test(10)
+    tab.append(t)
+    results["Q-Learning"] = {"train": train_data, "test": ["Q-Learning", t[1], t[2], t[3]]}
     # SARSA
     agent = Sarsa()
-    agent.train(time_limit=time_limit)
-    tab.append(agent.test(10))
+    train_data = agent.train(time_limit=time_limit)
+    t = agent.test(10)
+    tab.append(t)
+    results["SARSA"] = {"train": train_data, "test": ["SARSA", t[1], t[2], t[3]]}
     # Deep Q-Learning
     agent = DeepQLearning()
-    agent.train(time_limit=time_limit)
-    tab.append(agent.test(10))
+    train_data = agent.train(time_limit=time_limit)
+    t = agent.test(10)
+    tab.append(t)
+    results["Deep Q-Learning"] = {"train": train_data, "test": ["Deep Q-Learning", t[1], t[2], t[3]]}
     # Monte Carlo
     agent = MonteCarlo()
-    agent.train(time_limit=time_limit)
-    tab.append(agent.test(10))
+    train_data = agent.train(time_limit=time_limit)
+    t = agent.test(10)
+    tab.append(t)
+    results["Monte Carlo"] = {"train": train_data, "test": ["Monte Carlo", t[1], t[2], t[3]]}
 else:
     choices = questionary.checkbox(
         "Choisir les agents à tester :",
@@ -83,22 +95,36 @@ else:
 
     for choice in choices:
         if choice == "Bruteforce":
-            tab.append(Bruteforce().test(episodes_test))
+            t = Bruteforce().test(int(episodes_test))
+            tab.append(t)
+            results["Bruteforce"] = {"train": None, "test": ["Bruteforce", t[1], t[2], t[3]]}
         elif choice == "Q-Learning":
             agent = QLearning()
-            agent.train(int(ep_q_learning))
-            tab.append(agent.test(int(episodes_test)))
+            train_data = agent.train(int(ep_q_learning))
+            t = agent.test(int(episodes_test))
+            tab.append(t)
+            results["Q-Learning"] = {"train": train_data, "test": ["Q-Learning", t[1], t[2], t[3]]}
         elif choice == "SARSA":
             agent = Sarsa()
-            agent.train(int(ep_sarsa))
-            tab.append(agent.test(int(episodes_test)))
+            train_data = agent.train(int(ep_sarsa))
+            t = agent.test(int(episodes_test))
+            tab.append(t)
+            results["SARSA"] = {"train": train_data, "test": ["SARSA", t[1], t[2], t[3]]}
         elif choice == "Monte Carlo":
             agent = MonteCarlo()
-            agent.train(int(ep_monte_carlo))
-            tab.append(agent.test(int(episodes_test)))
+            train_data = agent.train(int(ep_monte_carlo))
+            t = agent.test(int(episodes_test))
+            tab.append(t)
+            results["Monte Carlo"] = {"train": train_data, "test": ["Monte Carlo", t[1], t[2], t[3]]}
         elif choice == "Deep Q-Learning":
             agent = DeepQLearning()
-            agent.train(int(ep_deep_q_learning))
-            tab.append(agent.test(int(episodes_test)))
+            train_data = agent.train(int(ep_deep_q_learning))
+            t = agent.test(int(episodes_test))
+            tab.append(t)
+            results["Deep Q-Learning"] = {"train": train_data, "test": ["Deep Q-Learning", t[1], t[2], t[3]]}
 
 print(tabulate(tab, headers=["Agent", "Récompense moyenne", "Nombre de pas moyen", "Taux de succès"], tablefmt="rounded_outline"))
+
+if results:
+    report_path = generate_report(results)
+    print(f"\nRapport généré : {report_path}")
