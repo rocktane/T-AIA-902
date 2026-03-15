@@ -4,12 +4,12 @@ import time
 
 class Sarsa(BaseAgent):
 
-    def __init__(self):
+    def __init__(self, epsilon=0.9, gamma=0.99, lr=0.2):
         super().__init__()
         self.q_table = np.zeros((self.env.observation_space.n, self.env.action_space.n)) # type: ignore
-        self.epsilon = 0.9
-        self.gamma = 0.99
-        self.lr = 0.2
+        self.epsilon = epsilon
+        self.gamma = gamma
+        self.lr = lr
 
     def choose_action(self, state):
         if np.random.random() > self.epsilon:
@@ -19,7 +19,7 @@ class Sarsa(BaseAgent):
         return action
 
     def train(self, n_episodes=None, time_limit=None):
-        self.decay_rate = (0.05 / 0.9) ** (1 / (n_episodes or 10000))
+        self.decay_rate = (0.05 / self.epsilon) ** (1 / (n_episodes or 10000))
         episode = 0
         start_time = time.time()
         training_time = 0

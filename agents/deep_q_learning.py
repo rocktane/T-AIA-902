@@ -18,20 +18,20 @@ class DQNetwork(nn.Module):
         return self.layer3(x)              # pas de relu sur la sortie (les Q-values peuvent être négatives)
 
 class DeepQLearning(BaseAgent):
-    def __init__(self):
+    def __init__(self, epsilon=0.9, gamma=0.99, lr=0.001):
         super().__init__()
         self.policy_net = DQNetwork()           # réseau qui apprend
         self.target_net = DQNetwork()           # copie figée
         self.target_net.load_state_dict(self.policy_net.state_dict())  # copier les poids
 
-        self.optimizer = torch.optim.Adam(self.policy_net.parameters(), lr=0.001) # Optimizer
+        self.optimizer = torch.optim.Adam(self.policy_net.parameters(), lr) # Optimizer
         self.loss_fn = nn.MSELoss()             # Loss function
 
         self.replay_buffer = []                 # mémoire des expériences
         self.buffer_size = 10000
         self.batch_size = 64
-        self.epsilon = 0.9
-        self.gamma = 0.99
+        self.epsilon = epsilon
+        self.gamma = gamma
 
         self.update_target_every = 100
         self.step_count = 0
@@ -53,7 +53,7 @@ class DeepQLearning(BaseAgent):
     def train(self, n_episodes=None, time_limit=None):
         episode = 0
         start_time = time.time()
-        self.decay_rate = (0.05 / 0.9) ** (1 / (n_episodes or 10000))
+        self.decay_rate = (0.05 / self.epsilon) ** (1 / (n_episodes or 10000))
         reward_history = []
         steps_history = []
         training_time = 0
