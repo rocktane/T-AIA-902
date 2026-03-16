@@ -1,5 +1,6 @@
 from statistics import mean
 import gymnasium as gym
+import time
 
 class BaseAgent:
     def __init__(self):
@@ -33,3 +34,17 @@ class BaseAgent:
             steps_list.append(total_steps)
             p_success = f"{(100 * total_success / n_episodes):.1f}%"
         return [self.__class__.__name__, mean(reward_list), mean(steps_list), p_success]
+
+    def display_episode(self, episode):
+        env = gym.make("Taxi-v3", render_mode="ansi")
+        self.epsilon = 0
+        for i in range(episode):
+            print(f"--- {self.__class__.__name__} - Épisode {i+1}/{episode} ---")
+            state, info = env.reset()
+            done = False
+            while not done:
+                action = self.choose_action(state)
+                state, reward, terminated, truncated, info = env.step(action)
+                done = terminated or truncated
+                print(env.render())
+                time.sleep(0.1)

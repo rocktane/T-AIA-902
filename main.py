@@ -8,6 +8,8 @@ from tabulate import tabulate
 from report import generate_report
 
 results = {}
+agents = ["Bruteforce", "Q-Learning", "SARSA", "Monte Carlo", "Deep Q-Learning"]
+
 mode = questionary.select(
     "Choisir le mode :",
     choices=["Manuel", "Temps limité"]
@@ -67,7 +69,7 @@ if mode == "Temps limité":
 else:
     choices = questionary.checkbox(
         "Choisir les agents à tester :",
-        choices=["Bruteforce", "Q-Learning", "SARSA", "Monte Carlo", "Deep Q-Learning"]
+        choices=agents
     ).ask()
 
     ep_q_learning = 10000
@@ -83,17 +85,17 @@ else:
                 validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= 100000
             ).ask()
             epsilon_q_learning = questionary.text(
-                "Quelle valeur pour epsilon ?",
+                "Quelle valeur pour epsilon pour Q-Learning ?",
                 default=str(0.9),
                 validate=validate_float_0_1
             ).ask()
             gamma_q_learning = questionary.text(
-                "Quelle valeur pour gamma ?",
+                "Quelle valeur pour gamma pour Q-Learning ?",
                 default=str(0.99),
                 validate=validate_float_0_1
             ).ask()
             lr_q_learning = questionary.text(
-                "Quelle valeur pour learning rate ?",
+                "Quelle valeur pour learning rate pour Q-Learning ?",
                 default=str(0.7),
                 validate=validate_float_0_1
             ).ask()
@@ -104,18 +106,18 @@ else:
                 validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= 100000
             ).ask()
             epsilon_sarsa = questionary.text(
-                "Quelle valeur pour epsilon ?",
+                "Quelle valeur pour epsilon pour SARSA ?",
                 default=str(0.9),
                 validate=validate_float_0_1
             ).ask()
             gamma_sarsa = questionary.text(
-                "Quelle valeur pour gamma ?",
+                "Quelle valeur pour gamma pour SARSA ?",
                 default=str(0.99),
                 validate=validate_float_0_1
             ).ask()
             lr_sarsa = questionary.text(
-                "Quelle valeur pour learning rate ?",
-                default=str(0.7),
+                "Quelle valeur pour learning rate pour SARSA ?",
+                default=str(0.2),
                 validate=validate_float_0_1
             ).ask()
         elif choice == "Monte Carlo":
@@ -125,17 +127,17 @@ else:
                 validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= 100000
             ).ask()
             epsilon_monte_carlo = questionary.text(
-                "Quelle valeur pour epsilon ?",
+                "Quelle valeur pour epsilon pour Monte Carlo ?",
                 default=str(0.9),
                 validate=validate_float_0_1
             ).ask()
             gamma_monte_carlo = questionary.text(
-                "Quelle valeur pour gamma ?",
+                "Quelle valeur pour gamma pour Monte Carlo ?",
                 default=str(0.99),
                 validate=validate_float_0_1
             ).ask()
             lr_monte_carlo = questionary.text(
-                "Quelle valeur pour learning rate ?",
+                "Quelle valeur pour learning rate pour Monte Carlo ?",
                 default=str(0.1),
                 validate=validate_float_0_1
             ).ask()
@@ -146,17 +148,17 @@ else:
                 validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= 10000
             ).ask()
             epsilon_deep_q_learning = questionary.text(
-                "Quelle valeur pour epsilon ?",
+                "Quelle valeur pour epsilon pour Deep Q-Learning ?",
                 default=str(0.9),
                 validate=validate_float_0_1
             ).ask()
             gamma_deep_q_learning = questionary.text(
-                "Quelle valeur pour gamma ?",
+                "Quelle valeur pour gamma pour Deep Q-Learning ?",
                 default=str(0.99),
                 validate=validate_float_0_1
             ).ask()
             lr_deep_q_learning = questionary.text(
-                "Quelle valeur pour learning rate ?",
+                "Quelle valeur pour learning rate pour Deep Q-Learning ?",
                 default=str(0.001),
                 validate=validate_float_0_1
             ).ask()
@@ -167,9 +169,15 @@ else:
         validate=lambda x: x.isdigit() and int(x) > 0 and int(x) < 1000
     ).ask()
 
+    display_episode = questionary.confirm(
+        "Voulez-vous afficher des épisodes ?",
+        default=True
+    ).ask()
+
     for choice in choices:
         if choice == "Bruteforce":
-            t = Bruteforce().test(int(episodes_test))
+            agent = Bruteforce()
+            t = agent.test(int(episodes_test))
             tab.append(t)
             results["Bruteforce"] = {"train": None, "test": ["Bruteforce", t[1], t[2], t[3]]}
         elif choice == "Q-Learning":
@@ -196,6 +204,9 @@ else:
             t = agent.test(int(episodes_test))
             tab.append(t)
             results["Deep Q-Learning"] = {"train": train_data, "test": ["Deep Q-Learning", t[1], t[2], t[3]]}
+
+        if display_episode:
+            agent.display_episode(3)
 
 print(tabulate(tab, headers=["Agent", "Récompense moyenne", "Nombre de pas moyen", "Taux de succès"], tablefmt="rounded_outline"))
 
