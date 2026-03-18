@@ -1,3 +1,4 @@
+from itertools import product
 import questionary
 from agents.bruteforce import Bruteforce
 from agents.monte_carlo import MonteCarlo
@@ -9,19 +10,51 @@ from report import generate_report
 
 results = {}
 agents = ["Bruteforce", "Q-Learning", "SARSA", "Monte Carlo", "Deep Q-Learning"]
+benchmark_agents = ["Q-Learning", "SARSA", "Monte Carlo", "Deep Q-Learning"]
+
+benchmark_defaults = {
+    "Q-Learning": {"episodes": 10000, "epsilon": "0.9", "gamma": "0.99", "lr": "0.7", "max_episodes": 100000},
+    "SARSA": {"episodes": 20000, "epsilon": "0.9", "gamma": "0.99", "lr": "0.2", "max_episodes": 100000},
+    "Monte Carlo": {"episodes": 100000, "epsilon": "0.9", "gamma": "0.99", "lr": "0.1", "max_episodes": 100000},
+    "Deep Q-Learning": {"episodes": 1000, "epsilon": "0.9", "gamma": "0.99", "lr": "0.001", "max_episodes": 10000},
+}
 
 mode = questionary.select(
     "Choisir le mode :",
-    choices=["Manuel", "Temps limité"]
+    choices=["Manuel", "Temps limité", "Benchmark"]
 ).ask()
 
 tab = [["Target", 7, 13, "100.0%"]]
+
 
 def validate_float_0_1(x):
     try:
         return 0 < float(x) <= 1
     except ValueError:
         return False
+
+
+def parse_float_list(raw_values):
+    values = [value.strip() for value in raw_values.split(",")]
+    if not values or any(value == "" for value in values):
+        raise ValueError
+    return [float(value) for value in values]
+
+
+def validate_float_list_0_1(raw_values):
+    try:
+        values = parse_float_list(raw_values)
+        return all(0 < value <= 1 for value in values)
+    except ValueError:
+        return False
+
+
+def create_benchmark_configs(epsilons, gammas, lrs):
+    return [
+        {"epsilon": epsilon, "gamma": gamma, "lr": lr}
+        for epsilon, gamma, lr in product(epsilons, gammas, lrs)
+    ]
+
 
 if mode == "Temps limité":
     time_limit = questionary.text(
@@ -66,6 +99,70 @@ if mode == "Temps limité":
     t = agent.test(test_episodes)
     tab.append(t)
     results["Monte Carlo"] = {"train": train_data, "test": ["Monte Carlo", t[1], t[2], t[3]]}
+elif mode == "Benchmark":
+    benchmark_agent = questionary.select(
+        "Quel agent voulez-vous benchmarker ?",
+        choices=benchmark_agents
+    ).ask()
+
+    defaults = benchmark_defaults[benchmark_agent]
+    benchmark_answers = questionary.form(
+        train_episodes=questionary.text(
+            "Combien d'épisodes à entraîner par configuration ?",
+            default=str(defaults["episodes"]),
+            validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= defaults["max_episodes"]
+        ),
+        test_episodes=questionary.text(
+            "Combien d'épisodes à tester par configuration ?",
+            default="100",
+            validate=lambda x: x.isdigit() and int(x) > 0 and int(x) < 1000
+        ),
+        epsilons=questionary.text(
+            "Valeurs de epsilon séparées par des virgules",
+            default=defaults["epsilon"],
+            validate=validate_float_list_0_1
+        ),
+        gammas=questionary.text(
+            "Valeurs de gamma séparées par des virgules",
+            default=defaults["gamma"],
+            validate=validate_float_list_0_1
+        ),
+        lrs=questionary.text(
+            "Valeurs de learning rate séparées par des virgules",
+            default=defaults["lr"],
+            validate=validate_float_list_0_1
+        ),
+    ).ask()
+
+    train_episodes = int(benchmark_answers["train_episodes"])
+    test_episodes = int(benchmark_answers["test_episodes"])
+    configs = create_benchmark_configs(
+        parse_float_list(benchmark_answers["epsilons"]),
+        parse_float_list(benchmark_answers["gammas"]),
+        parse_float_list(benchmark_answers["lrs"]),
+    )
+
+    agent_classes = {
+        "Q-Learning": QLearning,
+        "SARSA": Sarsa,
+        "Monte Carlo": MonteCarlo,
+        "Deep Q-Learning": DeepQLearning,
+    }
+
+    for i, config in enumerate(configs, 1):
+        agent = agent_classes[benchmark_agent](
+            epsilon=config["epsilon"],
+            gamma=config["gamma"],
+            lr=config["lr"],
+        )
+        train_data = agent.train(train_episodes)
+        t = agent.test(test_episodes)
+        label = (
+            f"{benchmark_agent} #{i} "
+            f"(e={config['epsilon']}, g={config['gamma']}, lr={config['lr']})"
+        )
+        tab.append([label, t[1], t[2], t[3]])
+        results[label] = {"train": train_data, "test": [label, t[1], t[2], t[3]]}
 else:
     choices = questionary.checkbox(
         "Choisir les agents à tester :",

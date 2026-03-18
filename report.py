@@ -116,6 +116,100 @@ def plot_success_over_training(results):
     return fig_to_base64(fig)
 
 
+def generate_analysis(results):
+    """
+    Génère des commentaires analytiques basés sur les résultats.
+    """
+    sections = []
+
+    # --- Analyse du choix des algorithmes ---
+    sections.append("""
+    <h2>Analyse des choix d'algorithmes</h2>
+    <div class="analysis">
+        <p><strong>Taxi-v3</strong> est un environnement à espace d'états discret (500 états) et espace d'actions discret (6 actions).
+        Ce contexte justifie le choix de méthodes tabulaires (Q-Learning, SARSA, Monte Carlo) qui peuvent
+        représenter explicitement la Q-table complète, garantissant une convergence optimale sans approximation.</p>
+
+        <p><strong>Bruteforce</strong> sert de baseline : il agit aléatoirement sans apprentissage, ce qui permet
+        de quantifier le gain réel apporté par chaque algorithme d'apprentissage.</p>
+
+        <p><strong>Q-Learning</strong> (off-policy, TD) apprend la politique optimale indépendamment de la politique
+        d'exploration. C'est l'algorithme de référence pour les environnements tabulaires grâce à sa convergence
+        prouvée et sa simplicité d'implémentation.</p>
+
+        <p><strong>SARSA</strong> (on-policy, TD) apprend la valeur de la politique effectivement suivie. Il est
+        généralement plus conservateur que Q-Learning car il tient compte du risque lié à l'exploration
+        (pénalités de -10 pour les actions illégales dans Taxi-v3).</p>
+
+        <p><strong>Monte Carlo</strong> met à jour les Q-values uniquement en fin d'épisode à partir du retour
+        cumulé complet. Il ne souffre pas du biais d'amorçage (bootstrapping) mais converge plus lentement
+        car il nécessite des épisodes terminés et présente une variance plus élevée.</p>
+
+        <p><strong>Deep Q-Learning (DQN)</strong> utilise un réseau de neurones pour approximer la Q-function.
+        Sur un espace d'états aussi petit que Taxi-v3, le DQN est surdimensionné par rapport aux méthodes
+        tabulaires — il est inclus à titre de démonstration et comparaison, car ses avantages se manifestent
+        surtout sur des espaces d'états continus ou très grands.</p>
+    </div>""")
+
+    # --- Analyse dynamique des résultats ---
+    best_agent = None
+    best_rate = -1
+    fastest_agent = None
+    fastest_time = float('inf')
+    for name, data in results.items():
+        test = data["test"]
+        rate = float(test[3].replace('%', ''))
+        if rate > best_rate:
+            best_rate = rate
+            best_agent = name
+        train = data["train"]
+        if train is not None and train["training_time"] < fastest_time:
+            fastest_time = train["training_time"]
+            fastest_agent = name
+
+    sections.append(f"""
+    <h2>Analyse des résultats</h2>
+    <div class="analysis">
+        <p><strong>Meilleur taux de succès :</strong> <em>{best_agent}</em> avec {best_rate:.1f}%.
+        {"Ce résultat confirme l'efficacité des méthodes tabulaires sur un espace d'états discret de petite taille." if best_rate > 90 else "Un taux inférieur à 90% suggère qu'un entraînement plus long ou un ajustement des hyperparamètres pourrait améliorer les performances."}</p>
+
+        <p><strong>Entraînement le plus rapide :</strong> <em>{fastest_agent}</em> en {fastest_time:.2f}s.
+        Les méthodes TD (Q-Learning, SARSA) convergent généralement plus vite que Monte Carlo car elles
+        mettent à jour les Q-values à chaque pas de temps, sans attendre la fin de l'épisode.</p>
+    </div>""")
+
+    # --- Analyse des récompenses et stratégie d'optimisation ---
+    sections.append("""
+    <h2>Stratégie d'optimisation des paramètres et récompenses</h2>
+    <div class="analysis">
+        <p><strong>Structure des récompenses de Taxi-v3 :</strong></p>
+        <ul>
+            <li><strong>+20</strong> pour une dépose réussie du passager à destination</li>
+            <li><strong>-1</strong> par pas de temps (encourage l'efficacité)</li>
+            <li><strong>-10</strong> pour une prise en charge ou dépose illégale</li>
+        </ul>
+        <p>Cette structure de récompense pénalise fortement les actions illégales et incite l'agent à
+        trouver le chemin le plus court. La récompense finale optimale dépend de la distance entre
+        le passager et la destination, typiquement entre +5 et +15 pour un trajet réussi.</p>
+
+        <h3>Rôle des hyperparamètres</h3>
+        <p><strong>Epsilon (ε)</strong> contrôle le compromis exploration/exploitation. Une valeur initiale
+        élevée (ex: 0.1) favorise l'exploration des actions inconnues, essentielle en début d'entraînement.
+        Une décroissance progressive vers 0 permet ensuite d'exploiter la politique apprise.</p>
+
+        <p><strong>Gamma (γ)</strong> est le facteur d'actualisation. Une valeur proche de 1 (ex: 0.99)
+        donne plus de poids aux récompenses futures, ce qui est important dans Taxi-v3 où la récompense
+        principale (+20) n'arrive qu'en fin d'épisode. Une valeur trop basse rendrait l'agent myope,
+        incapable de planifier le trajet complet.</p>
+
+        <p><strong>Learning rate (α)</strong> détermine l'amplitude des mises à jour. Une valeur modérée
+        (ex: 0.1) offre un bon compromis entre vitesse de convergence et stabilité. Trop élevée,
+        l'apprentissage oscille ; trop faible, il stagne.</p>
+    </div>""")
+
+    return "\n".join(sections)
+
+
 def generate_report(results):
     """
     Génère un rapport HTML avec des graphiques comparatifs.
@@ -138,6 +232,7 @@ def generate_report(results):
     img_time = plot_training_time(results)
     img_success = plot_test_success(results)
     img_success_training = plot_success_over_training(results)
+    analysis_html = generate_analysis(results)
 
     # Table des résultats de test
     test_rows = ""
@@ -231,6 +326,26 @@ def generate_report(results):
             margin-top: 40px;
             font-size: 0.9em;
         }}
+        .analysis {{
+            background: white;
+            padding: 20px 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            line-height: 1.7;
+        }}
+        .analysis ul {{
+            margin: 10px 0;
+            padding-left: 25px;
+        }}
+        .analysis li {{
+            margin: 5px 0;
+        }}
+        .analysis h3 {{
+            color: #2c3e50;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }}
     </style>
 </head>
 <body>
@@ -257,6 +372,8 @@ def generate_report(results):
         </tr>
         {train_rows}
     </table>
+
+    {analysis_html}
 
     <h2>1. Évolution de la récompense par épisode</h2>
     <div class="chart">
