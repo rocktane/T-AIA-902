@@ -1,12 +1,13 @@
 from itertools import product
 import questionary
+import plotext as plt
 from agents.bruteforce import Bruteforce
 from agents.monte_carlo import MonteCarlo
 from agents.q_learning import QLearning
 from agents.deep_q_learning import DeepQLearning
 from agents.sarsa import Sarsa
 from tabulate import tabulate
-from report import generate_report
+from report import generate_report, rolling_mean
 
 results = {}
 agents = ["Bruteforce", "Q-Learning", "SARSA", "Monte Carlo", "Deep Q-Learning"]
@@ -21,7 +22,7 @@ benchmark_defaults = {
 
 mode = questionary.select(
     "Choisir le mode :",
-    choices=["Manuel", "Temps limité", "Benchmark"]
+    choices=["Manuel", "Temps limité", "Benchmark", "Battle"]
 ).ask()
 
 tab = [["Target", 7, 13, "100.0%"]]
@@ -54,6 +55,56 @@ def create_benchmark_configs(epsilons, gammas, lrs):
         {"epsilon": epsilon, "gamma": gamma, "lr": lr}
         for epsilon, gamma, lr in product(epsilons, gammas, lrs)
     ]
+
+
+agent_classes = {
+    "Q-Learning": QLearning,
+    "SARSA": Sarsa,
+    "Monte Carlo": MonteCarlo,
+    "Deep Q-Learning": DeepQLearning,
+}
+
+
+def render_battle_graphs(name_a, name_b, train_a, train_b, test_a, test_b):
+    # Graphique 1 : Progression du taux de succès pendant l'entraînement
+    success_a = [float(s) * 100 for s in train_a["success_history"]]
+    success_b = [float(s) * 100 for s in train_b["success_history"]]
+    smooth_a = rolling_mean(success_a)
+    smooth_b = rolling_mean(success_b)
+
+    plt.clear_figure()
+    plt.plotsize(80, 15)
+    plt.plot(list(range(len(smooth_a))), list(smooth_a), label=name_a, color="red")
+    plt.plot(list(range(len(smooth_b))), list(smooth_b), label=name_b, color="blue")
+    plt.title("Taux de succès pendant l'entraînement (%)")
+    plt.xlabel("Épisodes")
+    plt.ylabel("Succès (%)")
+    plt.show()
+    print()
+
+    # Graphique 2 : Taux de succès final au test
+    rate_a = float(test_a[3].replace("%", ""))
+    rate_b = float(test_b[3].replace("%", ""))
+
+    plt.clear_figure()
+    plt.plotsize(80, 15)
+    plt.bar([name_a, name_b], [rate_a, rate_b], color=["blue", "red"])
+    plt.title("Taux de succès au test (%)")
+    plt.ylabel("Succès (%)")
+    plt.show()
+    print()
+
+    # Graphique 3 : Temps d'entraînement
+    time_a = train_a["training_time"]
+    time_b = train_b["training_time"]
+
+    plt.clear_figure()
+    plt.plotsize(80, 15)
+    plt.bar([name_a, name_b], [time_a, time_b], color=["blue", "red"])
+    plt.title("Temps d'entraînement (secondes)")
+    plt.ylabel("Secondes")
+    plt.show()
+    print()
 
 
 if mode == "Temps limité":
@@ -142,13 +193,6 @@ elif mode == "Benchmark":
         parse_float_list(benchmark_answers["lrs"]),
     )
 
-    agent_classes = {
-        "Q-Learning": QLearning,
-        "SARSA": Sarsa,
-        "Monte Carlo": MonteCarlo,
-        "Deep Q-Learning": DeepQLearning,
-    }
-
     for i, config in enumerate(configs, 1):
         agent = agent_classes[benchmark_agent](
             epsilon=config["epsilon"],
@@ -163,6 +207,74 @@ elif mode == "Benchmark":
         )
         tab.append([label, t[1], t[2], t[3]])
         results[label] = {"train": train_data, "test": [label, t[1], t[2], t[3]]}
+elif mode == "Battle":
+    battle_choices = []
+    while len(battle_choices) != 2:
+        battle_choices = questionary.checkbox(
+            "Choisir exactement 2 agents à affronter :",
+            choices=benchmark_agents
+        ).ask()
+        if len(battle_choices) != 2:
+            print("Veuillez sélectionner exactement 2 agents.")
+
+    default_episodes = str(max(
+        benchmark_defaults[battle_choices[0]]["episodes"],
+        benchmark_defaults[battle_choices[1]]["episodes"],
+    ))
+    default_lr = benchmark_defaults[battle_choices[0]]["lr"]
+
+    battle_answers = questionary.form(
+        train_episodes=questionary.text(
+            "Combien d'épisodes à entraîner ?",
+            default=default_episodes,
+            validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= 100000
+        ),
+        test_episodes=questionary.text(
+            "Combien d'épisodes à tester ?",
+            default="100",
+            validate=lambda x: x.isdigit() and int(x) > 0 and int(x) < 1000
+        ),
+        epsilon=questionary.text(
+            "Valeur de epsilon ?",
+            default="0.9",
+            validate=validate_float_0_1
+        ),
+        gamma=questionary.text(
+            "Valeur de gamma ?",
+            default="0.99",
+            validate=validate_float_0_1
+        ),
+        lr=questionary.text(
+            "Valeur de learning rate ?",
+            default=default_lr,
+            validate=validate_float_0_1
+        ),
+    ).ask()
+
+    train_ep = int(battle_answers["train_episodes"])
+    test_ep = int(battle_answers["test_episodes"])
+    epsilon = float(battle_answers["epsilon"])
+    gamma = float(battle_answers["gamma"])
+    lr = float(battle_answers["lr"])
+
+    name_a, name_b = battle_choices
+    agent_a = agent_classes[name_a](epsilon=epsilon, gamma=gamma, lr=lr)
+    agent_b = agent_classes[name_b](epsilon=epsilon, gamma=gamma, lr=lr)
+
+    print(f"\nEntraînement de {name_a}...")
+    train_a = agent_a.train(train_ep)
+    test_a = agent_a.test(test_ep)
+    tab.append(test_a)
+    results[name_a] = {"train": train_a, "test": [name_a, test_a[1], test_a[2], test_a[3]]}
+
+    print(f"Entraînement de {name_b}...")
+    train_b = agent_b.train(train_ep)
+    test_b = agent_b.test(test_ep)
+    tab.append(test_b)
+    results[name_b] = {"train": train_b, "test": [name_b, test_b[1], test_b[2], test_b[3]]}
+
+    print("\nRésultats :\n")
+    render_battle_graphs(name_a, name_b, train_a, train_b, test_a, test_b)
 else:
     choices = questionary.checkbox(
         "Choisir les agents à tester :",
@@ -307,6 +419,6 @@ else:
 
 print(tabulate(tab, headers=["Agent", "Récompense moyenne", "Nombre de pas moyen", "Taux de succès"], tablefmt="rounded_outline"))
 
-if results:
+if results and mode != "Battle":
     report_path = generate_report(results)
     print(f"\nRapport généré : {report_path}")
