@@ -50,7 +50,7 @@ class DeepQLearning(BaseAgent):
             action = self.env.action_space.sample()
         return action
 
-    def train(self, n_episodes=None, time_limit=None):
+    def train(self, n_episodes=None, time_limit=None, on_episode=None):
         episode = 0
         start_time = time.time()
         self.decay_rate = (0.05 / self.epsilon) ** (1 / (n_episodes or 10000))
@@ -108,6 +108,8 @@ class DeepQLearning(BaseAgent):
             steps_history.append(total_steps)
             episode += 1
             self.epsilon = max(0.05, self.epsilon * self.decay_rate)
+            if on_episode:
+                on_episode(episode)
         training_time = time.time() - start_time
         return {
             "reward_history": reward_history,

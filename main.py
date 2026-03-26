@@ -1,6 +1,7 @@
 from itertools import product
 import questionary
 import plotext as plt
+from tqdm import tqdm
 from agents.bruteforce import Bruteforce
 from agents.monte_carlo import MonteCarlo
 from agents.q_learning import QLearning
@@ -261,19 +262,31 @@ elif mode == "Battle":
     agent_a = agent_classes[name_a](epsilon=epsilon, gamma=gamma, lr=lr)
     agent_b = agent_classes[name_b](epsilon=epsilon, gamma=gamma, lr=lr)
 
-    print(f"\nEntraînement de {name_a}...")
-    train_a = agent_a.train(train_ep)
+    print(f"\n{'─' * 80}")
+    print(f"  BATTLE : {name_a} vs {name_b}")
+    print(f"{'─' * 80}\n")
+
+    pbar_a = tqdm(total=train_ep, desc=f"  {name_a}", unit="ep", ncols=80, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}")
+    train_a = agent_a.train(train_ep, on_episode=lambda ep: pbar_a.update(1))
+    pbar_a.close()
+    speed_a = train_ep / train_a["training_time"]
     test_a = agent_a.test(test_ep)
     tab.append(test_a)
     results[name_a] = {"train": train_a, "test": [name_a, test_a[1], test_a[2], test_a[3]]}
+    print(f"  Terminé en {train_a['training_time']:.2f}s — {speed_a:.2f}ep/s\n")
 
-    print(f"Entraînement de {name_b}...")
-    train_b = agent_b.train(train_ep)
+    pbar_b = tqdm(total=train_ep, desc=f"  {name_b}", unit="ep", ncols=80, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}")
+    train_b = agent_b.train(train_ep, on_episode=lambda ep: pbar_b.update(1))
+    pbar_b.close()
+    speed_b = train_ep / train_b["training_time"]
     test_b = agent_b.test(test_ep)
     tab.append(test_b)
     results[name_b] = {"train": train_b, "test": [name_b, test_b[1], test_b[2], test_b[3]]}
+    print(f"  Terminé en {train_b['training_time']:.2f}s — {speed_b:.2f}ep/s")
 
-    print("\nRésultats :\n")
+    print(f"\n{'─' * 80}")
+    print(f"  RÉSULTATS")
+    print(f"{'─' * 80}\n")
     render_battle_graphs(name_a, name_b, train_a, train_b, test_a, test_b)
 else:
     choices = questionary.checkbox(

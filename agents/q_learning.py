@@ -18,7 +18,7 @@ class QLearning(BaseAgent):
             action = self.env.action_space.sample()
         return action
 
-    def train(self, n_episodes=None, time_limit=None):
+    def train(self, n_episodes=None, time_limit=None, on_episode=None):
         self.decay_rate = (0.05 / self.epsilon) ** (1 / (n_episodes or 10000))
         episode = 0
         start = time.time()
@@ -49,6 +49,8 @@ class QLearning(BaseAgent):
             steps_history.append(total_steps)
             episode += 1
             self.epsilon = max(0.05, self.epsilon * self.decay_rate)
+            if on_episode:
+                on_episode(episode)
         training_time = time.time() - start
         return {
             "reward_history": reward_history,
