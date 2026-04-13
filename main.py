@@ -1,4 +1,6 @@
 from itertools import product
+import random
+import time
 import questionary
 import plotext as plt
 from tqdm import tqdm
@@ -9,6 +11,7 @@ from agents.deep_q_learning import DeepQLearning
 from agents.sarsa import Sarsa
 from tabulate import tabulate
 from report import generate_report, rolling_mean
+from best_params import save_best_params, get_best_params, load_best_params
 
 results = {}
 agents = ["Bruteforce", "Q-Learning", "SARSA", "Monte Carlo", "Deep Q-Learning"]
@@ -110,47 +113,76 @@ def render_battle_graphs(name_a, name_b, train_a, train_b, test_a, test_b):
 
 if mode == "Temps limité":
     time_limit = questionary.text(
-        "Combien de temps à entraîner (en secondes) ?",
-        default="10",
+        "Temps alloué à CHAQUE agent pour le test (secondes)",
+        default="5",
         validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= 60
     ).ask()
     time_limit = int(time_limit)
 
-    test_episodes = questionary.text(
-        "Combien d'épisodes à tester ?",
-        default="10",
-        validate=lambda x: x.isdigit() and int(x) > 0 and int(x) <= 100
-    ).ask()
-    test_episodes = int(test_episodes)
+    stored = load_best_params()
+    time_limited_stats = {}
+    unseen_seed = random.randint(10_000_000, 99_999_999)
+    print(f"\n{'─' * 80}")
+    print("  MODE TEMPS LIMITÉ — Paramètres sauvegardés + test chronométré (env inconnu)")
+    print(f"  Seed inconnu : {unseen_seed}  |  Budget test par agent : {time_limit}s")
+    print(f"{'─' * 80}\n")
 
-    # Bruteforce
-    t = Bruteforce().test(test_episodes)
-    tab.append(t)
-    results["Bruteforce"] = {"train": None, "test": ["Bruteforce", t[1], t[2], t[3]]}
-    # Q-Learning
-    agent = QLearning()
-    train_data = agent.train(time_limit=time_limit)
-    t = agent.test(test_episodes)
-    tab.append(t)
-    results["Q-Learning"] = {"train": train_data, "test": ["Q-Learning", t[1], t[2], t[3]]}
-    # SARSA
-    agent = Sarsa()
-    train_data = agent.train(time_limit=time_limit)
-    t = agent.test(test_episodes)
-    tab.append(t)
-    results["SARSA"] = {"train": train_data, "test": ["SARSA", t[1], t[2], t[3]]}
-    # Deep Q-Learning
-    agent = DeepQLearning()
-    train_data = agent.train(time_limit=time_limit)
-    t = agent.test(test_episodes)
-    tab.append(t)
-    results["Deep Q-Learning"] = {"train": train_data, "test": ["Deep Q-Learning", t[1], t[2], t[3]]}
-    # Monte Carlo
-    agent = MonteCarlo()
-    train_data = agent.train(time_limit=time_limit)
-    t = agent.test(test_episodes)
-    tab.append(t)
-    results["Monte Carlo"] = {"train": train_data, "test": ["Monte Carlo", t[1], t[2], t[3]]}
+    for name in benchmark_agents:
+        entry = stored.get(name)
+        if entry is None:
+            print(f"⚠️  {name} : aucun best_params enregistré. Agent ignoré (lance un benchmark d'abord).")
+            continue
+        params = entry["params"]
+        print(f"\n▶ {name} — params {params}")
+        agent = agent_classes[name](
+            epsilon=float(params["epsilon"]),
+            gamma=float(params["gamma"]),
+            lr=float(params["lr"]),
+        )
+        n_train = int(params["episodes"])
+        pbar = tqdm(total=n_train, desc=f"  {name} (train)", unit="ep", ncols=80, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}")
+        train_data = agent.train(n_train, on_episode=lambda ep: pbar.update(1), early_stopping=True)
+        pbar.close()
+        print(f"  Entraîné en {train_data['training_time']:.2f}s ({train_data['n_episodes']} ép.)")
+
+        test_stats = agent.test_time_limited(time_limit, seed=unseen_seed)
+        p_success = f"{(100 * test_stats['success_rate']):.1f}%"
+        tab.append([name, test_stats["reward_mean"], test_stats["steps_mean"], p_success])
+        results[name] = {"train": train_data, "test": [name, test_stats["reward_mean"], test_stats["steps_mean"], p_success]}
+        time_limited_stats[name] = {
+            "reward_mean": test_stats["reward_mean"],
+            "reward_std": test_stats["reward_std"],
+            "success_rate": test_stats["success_rate"],
+            "episodes_tested": test_stats["test_episodes"],
+            "epsilon_tolerance": test_stats["epsilon_tolerance"],
+            "train_time": train_data["training_time"],
+        }
+        print(f"  Test : {test_stats['test_episodes']} ép. | reward {test_stats['reward_mean']:.2f} | succès {p_success}")
+
+    if time_limited_stats:
+        print(f"\n{'─' * 80}\n  VISUALISATION\n{'─' * 80}\n")
+        names_tl = list(time_limited_stats.keys())
+        rewards_tl = [time_limited_stats[n]["reward_mean"] for n in names_tl]
+        success_tl = [time_limited_stats[n]["success_rate"] * 100 for n in names_tl]
+        episodes_tl = [time_limited_stats[n]["episodes_tested"] for n in names_tl]
+
+        plt.clear_figure(); plt.plotsize(80, 12)
+        plt.bar(names_tl, rewards_tl); plt.title("Reward moyen (test chronométré)"); plt.show(); print()
+
+        plt.clear_figure(); plt.plotsize(80, 12)
+        plt.bar(names_tl, success_tl); plt.title("Taux de succès % (test chronométré)"); plt.show(); print()
+
+        plt.clear_figure(); plt.plotsize(80, 12)
+        plt.bar(names_tl, episodes_tl); plt.title("Épisodes testés dans le temps imparti"); plt.show(); print()
+
+        qualified = [(n, s) for n, s in time_limited_stats.items() if s["success_rate"] >= 0.95]
+        pool = qualified if qualified else list(time_limited_stats.items())
+        winner = max(
+            pool,
+            key=lambda kv: (kv[1]["success_rate"] >= 0.95, kv[1]["reward_mean"], -kv[1]["train_time"]),
+        )
+        print(f"🏆 Meilleur agent (règle : succès≥95% → reward → temps) : {winner[0]}")
+        print(f"   reward {winner[1]['reward_mean']:.2f} ± {winner[1]['epsilon_tolerance']:.3f}  |  succès {winner[1]['success_rate']*100:.1f}%")
 elif mode == "Benchmark":
     benchmark_agent = questionary.select(
         "Quel agent voulez-vous benchmarker ?",
@@ -208,6 +240,23 @@ elif mode == "Benchmark":
         )
         tab.append([label, t[1], t[2], t[3]])
         results[label] = {"train": train_data, "test": [label, t[1], t[2], t[3]]}
+        stats = agent.last_test_stats
+        metrics = {
+            "reward_mean": stats["reward_mean"],
+            "reward_std": stats["reward_std"],
+            "success_rate": stats["success_rate"],
+            "train_time": train_data["training_time"],
+            "test_episodes": stats["test_episodes"],
+            "epsilon_tolerance": stats["epsilon_tolerance"],
+        }
+        params = {
+            "episodes": train_episodes,
+            "epsilon": config["epsilon"],
+            "gamma": config["gamma"],
+            "lr": config["lr"],
+        }
+        if save_best_params(benchmark_agent, params, metrics):
+            print(f"  ✓ Nouveau best_params enregistré pour {benchmark_agent}")
 elif mode == "Battle":
     battle_choices = []
     while len(battle_choices) != 2:
@@ -288,6 +337,20 @@ elif mode == "Battle":
     print(f"  RÉSULTATS")
     print(f"{'─' * 80}\n")
     render_battle_graphs(name_a, name_b, train_a, train_b, test_a, test_b)
+
+    for name, ag, train_d in ((name_a, agent_a, train_a), (name_b, agent_b, train_b)):
+        s = ag.last_test_stats
+        metrics = {
+            "reward_mean": s["reward_mean"],
+            "reward_std": s["reward_std"],
+            "success_rate": s["success_rate"],
+            "train_time": train_d["training_time"],
+            "test_episodes": s["test_episodes"],
+            "epsilon_tolerance": s["epsilon_tolerance"],
+        }
+        params = {"episodes": train_ep, "epsilon": epsilon, "gamma": gamma, "lr": lr}
+        if save_best_params(name, params, metrics):
+            print(f"  ✓ Nouveau best_params enregistré pour {name}")
 else:
     choices = questionary.checkbox(
         "Choisir les agents à tester :",
@@ -428,6 +491,7 @@ else:
             results["Deep Q-Learning"] = {"train": train_data, "test": ["Deep Q-Learning", t[1], t[2], t[3]]}
 
         if display_episode:
+            print(f"\n🤖 Modèle : {choice}\n")
             agent.display_episode(3)
 
 print(tabulate(tab, headers=["Agent", "Récompense moyenne", "Nombre de pas moyen", "Taux de succès"], tablefmt="rounded_outline"))

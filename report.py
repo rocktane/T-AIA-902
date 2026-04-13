@@ -30,12 +30,13 @@ def plot_reward_history(results):
         if train is None:
             continue
         smoothed = rolling_mean(train["reward_history"])
-        ax.plot(smoothed, label=name)
-    ax.set_title("Évolution de la récompense par épisode")
-    ax.set_xlabel("Épisode")
+        ax.plot(range(1, len(smoothed) + 1), smoothed, label=name)
+    ax.set_title("Évolution de la récompense par épisode (échelle log X)")
+    ax.set_xlabel("Épisode (log)")
     ax.set_ylabel("Récompense (moyenne glissante)")
+    ax.set_xscale("log")
     ax.legend()
-    ax.grid(True, alpha=0.3)
+    ax.grid(True, alpha=0.3, which="both")
     return fig_to_base64(fig)
 
 
@@ -46,12 +47,13 @@ def plot_steps_history(results):
         if train is None:
             continue
         smoothed = rolling_mean(train["steps_history"])
-        ax.plot(smoothed, label=name)
-    ax.set_title("Évolution du nombre de steps par épisode")
-    ax.set_xlabel("Épisode")
+        ax.plot(range(1, len(smoothed) + 1), smoothed, label=name)
+    ax.set_title("Évolution du nombre de steps par épisode (échelle log X)")
+    ax.set_xlabel("Épisode (log)")
     ax.set_ylabel("Nombre de steps (moyenne glissante)")
+    ax.set_xscale("log")
     ax.legend()
-    ax.grid(True, alpha=0.3)
+    ax.grid(True, alpha=0.3, which="both")
     return fig_to_base64(fig)
 
 
@@ -93,6 +95,45 @@ def plot_test_success(results):
     ax.set_ylabel("Taux de succès (%)")
     ax.set_ylim(0, 110)
     ax.grid(True, alpha=0.3, axis='y')
+    return fig_to_base64(fig)
+
+
+def _ranked(results):
+    ranked = []
+    for name, data in results.items():
+        test = data["test"]
+        reward_mean = float(test[1])
+        success = float(test[3].replace('%', ''))
+        train_time = data["train"]["training_time"] if data.get("train") else None
+        ranked.append({
+            "name": name,
+            "reward": reward_mean,
+            "steps": float(test[2]),
+            "success": success,
+            "train_time": train_time,
+        })
+    ranked.sort(key=lambda r: r["reward"], reverse=True)
+    return ranked
+
+
+def plot_top_bottom(results):
+    ranked = _ranked(results)
+    if len(ranked) <= 1:
+        return None
+    top = ranked[:5]
+    bottom = ranked[-5:] if len(ranked) > 5 else []
+    fig, axes = plt.subplots(1, 2 if bottom else 1, figsize=(14, 5))
+    if not bottom:
+        axes = [axes]
+    axes[0].barh([r["name"] for r in top][::-1], [r["reward"] for r in top][::-1], color="#2ecc71")
+    axes[0].set_title("Top 5 (reward moyen)")
+    axes[0].set_xlabel("Reward moyen")
+    axes[0].grid(True, alpha=0.3, axis="x")
+    if bottom:
+        axes[1].barh([r["name"] for r in bottom][::-1], [r["reward"] for r in bottom][::-1], color="#e74c3c")
+        axes[1].set_title("Bottom 5 (reward moyen)")
+        axes[1].set_xlabel("Reward moyen")
+        axes[1].grid(True, alpha=0.3, axis="x")
     return fig_to_base64(fig)
 
 
@@ -207,6 +248,74 @@ def generate_analysis(results):
         l'apprentissage oscille ; trop faible, il stagne.</p>
     </div>""")
 
+    # --- Méthodologie (benchmark & règle de sélection) ---
+    sections.append("""
+    <h2>Méthodologie et protocole de benchmark</h2>
+    <div class="analysis">
+        <p><strong>Protocole de recherche des meilleurs paramètres.</strong> Le mode benchmark effectue un
+        <em>grid-search</em> sur le produit cartésien des valeurs fournies pour epsilon, gamma et learning rate.
+        Chaque configuration est entraînée indépendamment (avec <em>early stopping</em> actif pour couper quand la
+        métrique stagne), puis testée sur un nombre fixe d'épisodes.</p>
+        <p><strong>Early stopping.</strong> Pendant l'entraînement, on surveille la moyenne glissante du reward
+        sur une fenêtre de 100 épisodes. Si aucune amélioration significative (plus grande que
+        σ / √n) n'apparaît pendant 3 fenêtres consécutives (après un minimum de 15% des épisodes),
+        l'entraînement est interrompu.</p>
+        <p><strong>Règle de sélection du « meilleur » modèle.</strong> Une configuration est retenue si :</p>
+        <ol>
+            <li>elle franchit le seuil de qualité <strong>taux de succès ≥ 95%</strong> ;</li>
+            <li>parmi les candidates qualifiées, celle au plus haut <strong>reward moyen</strong> gagne ;</li>
+            <li>si l'écart est plus petit que l'incertitude ε = σ / √n, on départage par <strong>temps d'entraînement minimum</strong>.</li>
+        </ol>
+        <p>On privilégie <em>reward moyen</em> plutôt que <em>taux de succès</em> car, une fois le seuil de fiabilité
+        atteint, le reward distingue les politiques efficaces (chemins courts, peu de pénalités) des politiques
+        seulement correctes.</p>
+    </div>""")
+
+    # --- Top / Bottom 5 ---
+    ranked = _ranked(results)
+    if len(ranked) > 1:
+        top = ranked[:5]
+        bottom = ranked[-5:] if len(ranked) > 5 else []
+        rows_top = "".join(
+            f"<tr><td>{r['name']}</td><td>{r['reward']:.2f}</td><td>{r['success']:.1f}%</td><td>"
+            + (f"{r['train_time']:.2f}s" if r['train_time'] is not None else "-") + "</td></tr>"
+            for r in top
+        )
+        rows_bot = "".join(
+            f"<tr><td>{r['name']}</td><td>{r['reward']:.2f}</td><td>{r['success']:.1f}%</td><td>"
+            + (f"{r['train_time']:.2f}s" if r['train_time'] is not None else "-") + "</td></tr>"
+            for r in bottom
+        )
+        sections.append(f"""
+        <h2>Classement — Top 5 / Bottom 5 (par reward moyen)</h2>
+        <div class="analysis">
+            <h3>Top 5</h3>
+            <table><tr><th>Agent</th><th>Reward</th><th>Succès</th><th>Temps d'entraînement</th></tr>{rows_top}</table>
+            {("<h3>Bottom 5</h3><table><tr><th>Agent</th><th>Reward</th><th>Succès</th><th>Temps d'entraînement</th></tr>" + rows_bot + "</table>") if rows_bot else ""}
+        </div>""")
+
+    # --- Conclusions comparatives ---
+    best = ranked[0] if ranked else None
+    worst = ranked[-1] if len(ranked) > 1 else None
+    if best and worst:
+        sections.append(f"""
+        <h2>Conclusions comparatives</h2>
+        <div class="analysis">
+            <p><strong>Meilleure config : {best['name']}</strong> — reward {best['reward']:.2f}, succès {best['success']:.1f}%.
+            Ce qui la distingue : un bon compromis exploration/exploitation (epsilon assez haut pour découvrir,
+            décroissance suffisante pour exploiter), un gamma élevé (≈0.99) qui permet de valoriser la récompense
+            terminale de +20, et un learning rate adapté à la famille d'algorithme.</p>
+            <p><strong>Pire config : {worst['name']}</strong> — reward {worst['reward']:.2f}.
+            Typiquement : exploration insuffisante (l'agent reste bloqué sur une politique sous-optimale),
+            ou learning rate trop élevé provoquant des oscillations, ou encore trop peu d'épisodes pour que la
+            Q-table se stabilise.</p>
+            <p><strong>SARSA vs Q-Learning.</strong> Sur Taxi-v3, Q-Learning (off-policy) tend à converger plus
+            vite vers la politique optimale car il apprend la Q-value du « meilleur choix futur » indépendamment
+            de l'exploration. SARSA (on-policy) apprend la valeur de la politique effectivement suivie, donc
+            intègre le coût de l'exploration — il est plus prudent mais plus lent à converger, et plus sensible
+            à la stratégie de décroissance d'epsilon.</p>
+        </div>""")
+
     return "\n".join(sections)
 
 
@@ -232,6 +341,7 @@ def generate_report(results):
     img_time = plot_training_time(results)
     img_success = plot_test_success(results)
     img_success_training = plot_success_over_training(results)
+    img_top_bottom = plot_top_bottom(results)
     analysis_html = generate_analysis(results)
 
     # Table des résultats de test
@@ -399,6 +509,8 @@ def generate_report(results):
     <div class="chart">
         <img src="data:image/png;base64,{img_success_training}" alt="Success rate over training">
     </div>
+
+    {"<h2>6. Top 5 / Bottom 5 (reward moyen)</h2><div class='chart'><img src='data:image/png;base64," + img_top_bottom + "' alt='Top/Bottom 5'></div>" if img_top_bottom else ""}
 
     <div class="footer">
         <p>Environnement : Taxi-v3 (Gymnasium)</p>

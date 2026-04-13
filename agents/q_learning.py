@@ -1,4 +1,5 @@
 from agents import BaseAgent
+from agents.early_stopping import EarlyStopping
 import numpy as np
 import time
 
@@ -18,7 +19,7 @@ class QLearning(BaseAgent):
             action = self.env.action_space.sample()
         return action
 
-    def train(self, n_episodes=None, time_limit=None, on_episode=None):
+    def train(self, n_episodes=None, time_limit=None, on_episode=None, early_stopping=True):
         self.decay_rate = (0.05 / self.epsilon) ** (1 / (n_episodes or 10000))
         episode = 0
         start = time.time()
@@ -26,6 +27,9 @@ class QLearning(BaseAgent):
         steps_history = []
         training_time = 0
         success_history = []
+        es = None
+        if early_stopping and n_episodes is not None:
+            es = EarlyStopping(window_size=100, patience=3, min_episodes=int(0.15 * n_episodes))
         while True:
             total_reward = 0
             total_steps = 0
@@ -51,6 +55,8 @@ class QLearning(BaseAgent):
             self.epsilon = max(0.05, self.epsilon * self.decay_rate)
             if on_episode:
                 on_episode(episode)
+            if es is not None and es.should_stop(episode, total_reward):
+                break
         training_time = time.time() - start
         return {
             "reward_history": reward_history,
@@ -58,4 +64,5 @@ class QLearning(BaseAgent):
             "training_time": training_time,
             "n_episodes": episode,
             "success_history": success_history,
+            "early_stopped_at": es.triggered_at if es else None,
         }
