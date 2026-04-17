@@ -228,6 +228,7 @@ elif mode == "Benchmark":
 
     previous_best = get_best_params(benchmark_agent)
     new_best_saved = False
+    benchmark_runs = []
 
     for i, config in enumerate(configs, 1):
         agent = agent_classes[benchmark_agent](
@@ -258,6 +259,7 @@ elif mode == "Benchmark":
             "gamma": config["gamma"],
             "lr": config["lr"],
         }
+        benchmark_runs.append({"label": label, "params": params, "metrics": metrics})
         if save_best_params(benchmark_agent, params, metrics):
             new_best_saved = True
 elif mode == "Battle":
@@ -499,46 +501,65 @@ else:
 
 print(tabulate(tab, headers=["Agent", "Récompense moyenne", "Nombre de pas moyen", "Taux de succès"], tablefmt="rounded_outline"))
 
-if mode == "Benchmark" and new_best_saved:
-    current_best = get_best_params(benchmark_agent)
-    best_params_values = current_best["params"]
-    best_metrics = current_best["metrics"]
-    print(f"\n✓ Nouvelle meilleure configuration pour {benchmark_agent}")
+if mode == "Benchmark" and benchmark_runs:
+    winner = max(
+        benchmark_runs,
+        key=lambda r: (
+            r["metrics"]["success_rate"] >= 0.95,
+            r["metrics"]["reward_mean"],
+            -r["metrics"]["train_time"],
+        ),
+    )
+    w_params = winner["params"]
+    w_metrics = winner["metrics"]
+    print(f"\n🏆 Meilleur modèle du benchmark : {winner['label']}")
     print(
-        f"  params : epsilon={best_params_values['epsilon']}, "
-        f"gamma={best_params_values['gamma']}, "
-        f"lr={best_params_values['lr']}, "
-        f"episodes={best_params_values['episodes']}"
+        f"  params : epsilon={w_params['epsilon']}, "
+        f"gamma={w_params['gamma']}, "
+        f"lr={w_params['lr']}, "
+        f"episodes={w_params['episodes']}"
     )
     print(
-        f"  reward {best_metrics['reward_mean']:.2f} ± {best_metrics['epsilon_tolerance']:.3f}  |  "
-        f"succès {best_metrics['success_rate']*100:.1f}%  |  "
-        f"train_time {best_metrics['train_time']:.2f}s"
+        f"  reward {w_metrics['reward_mean']:.2f} ± {w_metrics['epsilon_tolerance']:.3f}  |  "
+        f"succès {w_metrics['success_rate']*100:.1f}%  |  "
+        f"train_time {w_metrics['train_time']:.2f}s"
     )
-    if previous_best is None:
-        print("  Raison : premier enregistrement, aucun best antérieur.")
-    else:
-        prev_metrics = previous_best["metrics"]
-        tol = best_metrics["epsilon_tolerance"]
-        if prev_metrics["success_rate"] < 0.95:
-            print(
-                f"  Raison : l'ancien best n'atteignait pas 95% de succès "
-                f"({prev_metrics['success_rate']*100:.1f}%), celui-ci oui."
-            )
-        elif best_metrics["reward_mean"] > prev_metrics["reward_mean"] + tol:
-            delta = best_metrics["reward_mean"] - prev_metrics["reward_mean"]
-            print(
-                f"  Raison : récompense moyenne supérieure "
-                f"({prev_metrics['reward_mean']:.2f} → {best_metrics['reward_mean']:.2f}, "
-                f"Δ={delta:+.2f} > ε_tol={tol:.3f})."
-            )
+    print(
+        "  Critère de sélection : succès ≥ 95% → reward moyen le plus élevé "
+        "→ train_time le plus court."
+    )
+    if w_metrics["success_rate"] < 0.95:
+        print(
+            "  ⚠ Aucun modèle du benchmark n'atteint 95% de succès "
+            "(règle qualité non respectée)."
+        )
+
+    if new_best_saved:
+        print(f"\n✓ Nouveau best_params persistant enregistré pour {benchmark_agent}")
+        if previous_best is None:
+            print("  Raison : premier enregistrement, aucun best antérieur.")
         else:
-            print(
-                f"  Raison : récompense équivalente "
-                f"({prev_metrics['reward_mean']:.2f} → {best_metrics['reward_mean']:.2f}, "
-                f"|Δ| ≤ ε_tol={tol:.3f}), mais entraînement plus rapide "
-                f"({prev_metrics['train_time']:.2f}s → {best_metrics['train_time']:.2f}s)."
-            )
+            prev_metrics = previous_best["metrics"]
+            tol = w_metrics["epsilon_tolerance"]
+            if prev_metrics["success_rate"] < 0.95:
+                print(
+                    f"  Raison : l'ancien best n'atteignait pas 95% de succès "
+                    f"({prev_metrics['success_rate']*100:.1f}%), celui-ci oui."
+                )
+            elif w_metrics["reward_mean"] > prev_metrics["reward_mean"] + tol:
+                delta = w_metrics["reward_mean"] - prev_metrics["reward_mean"]
+                print(
+                    f"  Raison : récompense moyenne supérieure "
+                    f"({prev_metrics['reward_mean']:.2f} → {w_metrics['reward_mean']:.2f}, "
+                    f"Δ={delta:+.2f} > ε_tol={tol:.3f})."
+                )
+            else:
+                print(
+                    f"  Raison : récompense équivalente "
+                    f"({prev_metrics['reward_mean']:.2f} → {w_metrics['reward_mean']:.2f}, "
+                    f"|Δ| ≤ ε_tol={tol:.3f}), mais entraînement plus rapide "
+                    f"({prev_metrics['train_time']:.2f}s → {w_metrics['train_time']:.2f}s)."
+                )
 
 if results and mode != "Battle":
     report_path = generate_report(results)
