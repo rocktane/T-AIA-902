@@ -226,6 +226,9 @@ elif mode == "Benchmark":
         parse_float_list(benchmark_answers["lrs"]),
     )
 
+    previous_best = get_best_params(benchmark_agent)
+    new_best_saved = False
+
     for i, config in enumerate(configs, 1):
         agent = agent_classes[benchmark_agent](
             epsilon=config["epsilon"],
@@ -256,7 +259,7 @@ elif mode == "Benchmark":
             "lr": config["lr"],
         }
         if save_best_params(benchmark_agent, params, metrics):
-            print(f"  ✓ Nouveau best_params enregistré pour {benchmark_agent}")
+            new_best_saved = True
 elif mode == "Battle":
     battle_choices = []
     while len(battle_choices) != 2:
@@ -495,6 +498,47 @@ else:
             agent.display_episode(3)
 
 print(tabulate(tab, headers=["Agent", "Récompense moyenne", "Nombre de pas moyen", "Taux de succès"], tablefmt="rounded_outline"))
+
+if mode == "Benchmark" and new_best_saved:
+    current_best = get_best_params(benchmark_agent)
+    best_params_values = current_best["params"]
+    best_metrics = current_best["metrics"]
+    print(f"\n✓ Nouvelle meilleure configuration pour {benchmark_agent}")
+    print(
+        f"  params : epsilon={best_params_values['epsilon']}, "
+        f"gamma={best_params_values['gamma']}, "
+        f"lr={best_params_values['lr']}, "
+        f"episodes={best_params_values['episodes']}"
+    )
+    print(
+        f"  reward {best_metrics['reward_mean']:.2f} ± {best_metrics['epsilon_tolerance']:.3f}  |  "
+        f"succès {best_metrics['success_rate']*100:.1f}%  |  "
+        f"train_time {best_metrics['train_time']:.2f}s"
+    )
+    if previous_best is None:
+        print("  Raison : premier enregistrement, aucun best antérieur.")
+    else:
+        prev_metrics = previous_best["metrics"]
+        tol = best_metrics["epsilon_tolerance"]
+        if prev_metrics["success_rate"] < 0.95:
+            print(
+                f"  Raison : l'ancien best n'atteignait pas 95% de succès "
+                f"({prev_metrics['success_rate']*100:.1f}%), celui-ci oui."
+            )
+        elif best_metrics["reward_mean"] > prev_metrics["reward_mean"] + tol:
+            delta = best_metrics["reward_mean"] - prev_metrics["reward_mean"]
+            print(
+                f"  Raison : récompense moyenne supérieure "
+                f"({prev_metrics['reward_mean']:.2f} → {best_metrics['reward_mean']:.2f}, "
+                f"Δ={delta:+.2f} > ε_tol={tol:.3f})."
+            )
+        else:
+            print(
+                f"  Raison : récompense équivalente "
+                f"({prev_metrics['reward_mean']:.2f} → {best_metrics['reward_mean']:.2f}, "
+                f"|Δ| ≤ ε_tol={tol:.3f}), mais entraînement plus rapide "
+                f"({prev_metrics['train_time']:.2f}s → {best_metrics['train_time']:.2f}s)."
+            )
 
 if results and mode != "Battle":
     report_path = generate_report(results)

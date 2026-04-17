@@ -1,19 +1,19 @@
 {
   "Q-Learning": {
     "params": {
-      "episodes": 20000,
+      "episodes": 10000,
       "epsilon": 0.9,
       "gamma": 0.99,
-      "lr": 0.7
+      "lr": 0.3
     },
     "metrics": {
-      "reward_mean": 8.04,
-      "reward_std": 2.6642822673282947,
+      "reward_mean": 8.63,
+      "reward_std": 2.5793603858321155,
       "success_rate": 1.0,
-      "train_time": 2.5543248653411865,
+      "train_time": 1.7542588710784912,
       "test_episodes": 100,
-      "epsilon_tolerance": 0.26642822673282945
+      "epsilon_tolerance": 0.25793603858321157
     },
-    "timestamp": "2026-04-17T16:16:25"
+    "timestamp": "2026-04-17T16:35:30"
   }
 }
