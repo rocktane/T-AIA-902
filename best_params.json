@@ -1,0 +1,19 @@
+{
+  "Q-Learning": {
+    "params": {
+      "episodes": 20000,
+      "epsilon": 0.9,
+      "gamma": 0.99,
+      "lr": 0.7
+    },
+    "metrics": {
+      "reward_mean": 8.04,
+      "reward_std": 2.6642822673282947,
+      "success_rate": 1.0,
+      "train_time": 2.5543248653411865,
+      "test_episodes": 100,
+      "epsilon_tolerance": 0.26642822673282945
+    },
+    "timestamp": "2026-04-17T16:16:25"
+  }
+}
