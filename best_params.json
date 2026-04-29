@@ -24,14 +24,14 @@
       "lr": 0.2
     },
     "metrics": {
-      "reward_mean": 2.09,
-      "reward_std": 35.63371858226418,
-      "success_rate": 0.97,
-      "train_time": 1.959886074066162,
+      "reward_mean": 7.91,
+      "reward_std": 2.375268405885954,
+      "success_rate": 1.0,
+      "train_time": 1.9926338195800781,
       "test_episodes": 100,
-      "epsilon_tolerance": 3.563371858226418
+      "epsilon_tolerance": 0.23752684058859538
     },
-    "timestamp": "2026-04-29T08:16:43"
+    "timestamp": "2026-04-29T21:33:34"
   },
   "Monte Carlo": {
     "params": {
@@ -41,30 +41,30 @@
       "lr": 0.05
     },
     "metrics": {
-      "reward_mean": 6.05,
-      "reward_std": 20.888453748422837,
-      "success_rate": 0.99,
-      "train_time": 3.5517969131469727,
+      "reward_mean": 7.28,
+      "reward_std": 2.541967741730803,
+      "success_rate": 1.0,
+      "train_time": 3.567389965057373,
       "test_episodes": 100,
-      "epsilon_tolerance": 2.0888453748422835
+      "epsilon_tolerance": 0.2541967741730803
     },
-    "timestamp": "2026-04-29T08:25:20"
+    "timestamp": "2026-04-29T21:35:28"
   },
   "Deep Q-Learning": {
     "params": {
       "episodes": 2000,
-      "epsilon": 0.8,
+      "epsilon": 0.9,
       "gamma": 0.95,
-      "lr": 0.001
+      "lr": 0.0005
     },
     "metrics": {
-      "reward_mean": 6.08,
-      "reward_std": 20.88285421105075,
-      "success_rate": 0.99,
-      "train_time": 41.42269706726074,
+      "reward_mean": 8.12,
+      "reward_std": 2.526974475533934,
+      "success_rate": 1.0,
+      "train_time": 42.34305667877197,
       "test_episodes": 100,
-      "epsilon_tolerance": 2.0882854211050748
+      "epsilon_tolerance": 0.2526974475533934
     },
-    "timestamp": "2026-04-29T08:47:30"
+    "timestamp": "2026-04-29T21:45:28"
   }
 }
