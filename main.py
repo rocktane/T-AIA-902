@@ -11,7 +11,7 @@ from agents.deep_q_learning import DeepQLearning
 from agents.sarsa import Sarsa
 from tabulate import tabulate
 from report import generate_report, rolling_mean
-from best_params import save_best_params, get_best_params, load_best_params
+from best_params import save_best_params, get_best_params, load_best_params, save_benchmark_runs
 
 results = {}
 agents = ["Bruteforce", "Q-Learning", "SARSA", "Monte Carlo", "Deep Q-Learning"]
@@ -262,6 +262,8 @@ elif mode == "Benchmark":
         benchmark_runs.append({"label": label, "params": params, "metrics": metrics})
         if save_best_params(benchmark_agent, params, metrics):
             new_best_saved = True
+
+    save_benchmark_runs(benchmark_agent, benchmark_runs, train_episodes)
 elif mode == "Battle":
     battle_choices = []
     while len(battle_choices) != 2:

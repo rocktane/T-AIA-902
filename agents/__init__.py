@@ -5,7 +5,7 @@ import time
 
 class BaseAgent:
     def __init__(self):
-        self.env = gym.make("Taxi-v4")
+        self.env = gym.make("Taxi-v3")
         self.last_test_stats = None
 
     def choose_action(self, state):
@@ -92,7 +92,7 @@ class BaseAgent:
         return self.last_test_stats
 
     def display_episode(self, episode):
-        env = gym.make("Taxi-v4", render_mode="ansi")
+        env = gym.make("Taxi-v3", render_mode="ansi")
         self.epsilon = 0
         for i in range(episode):
             print(f"--- {self.__class__.__name__} - Épisode {i+1}/{episode} ---")

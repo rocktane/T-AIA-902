@@ -2,69 +2,745 @@
   "Q-Learning": {
     "params": {
       "episodes": 10000,
-      "epsilon": 0.7,
-      "gamma": 0.99,
+      "epsilon": 0.9,
+      "gamma": 0.95,
       "lr": 0.7
     },
     "metrics": {
-      "reward_mean": 8.39,
-      "reward_std": 2.58416330753302,
+      "reward_mean": 8.71,
+      "reward_std": 2.8854635676091975,
       "success_rate": 1.0,
-      "train_time": 0.6898801326751709,
+      "train_time": 15.979852199554443,
       "test_episodes": 100,
-      "epsilon_tolerance": 0.258416330753302
+      "epsilon_tolerance": 0.2885463567609198
     },
-    "timestamp": "2026-04-29T07:58:01"
+    "timestamp": "2026-04-29T20:38:23",
+    "last_benchmark": {
+      "timestamp": "2026-04-29T20:39:55",
+      "n_configs": 24,
+      "train_episodes": 10000,
+      "top5": [
+        {
+          "params": {
+            "episodes": 10000,
+            "epsilon": 0.9,
+            "gamma": 0.95,
+            "lr": 0.7
+          },
+          "metrics": {
+            "reward_mean": 8.71,
+            "reward_std": 2.8854635676091975,
+            "success_rate": 1.0,
+            "train_time": 15.979852199554443,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.2885463567609198
+          }
+        },
+        {
+          "params": {
+            "episodes": 10000,
+            "epsilon": 0.7,
+            "gamma": 0.99,
+            "lr": 0.5
+          },
+          "metrics": {
+            "reward_mean": 8.37,
+            "reward_std": 2.7555580197121596,
+            "success_rate": 1.0,
+            "train_time": 1.1796989440917969,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.275555801971216
+          }
+        },
+        {
+          "params": {
+            "episodes": 10000,
+            "epsilon": 0.9,
+            "gamma": 0.99,
+            "lr": 0.7
+          },
+          "metrics": {
+            "reward_mean": 8.35,
+            "reward_std": 2.8613807855648994,
+            "success_rate": 1.0,
+            "train_time": 23.103459119796753,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.2861380785564899
+          }
+        },
+        {
+          "params": {
+            "episodes": 10000,
+            "epsilon": 0.8,
+            "gamma": 0.99,
+            "lr": 0.5
+          },
+          "metrics": {
+            "reward_mean": 8.26,
+            "reward_std": 2.419173412552312,
+            "success_rate": 1.0,
+            "train_time": 11.548770904541016,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.2419173412552312
+          }
+        },
+        {
+          "params": {
+            "episodes": 10000,
+            "epsilon": 0.8,
+            "gamma": 0.95,
+            "lr": 0.1
+          },
+          "metrics": {
+            "reward_mean": 8.22,
+            "reward_std": 2.586812710653788,
+            "success_rate": 1.0,
+            "train_time": 45.71224784851074,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.2586812710653788
+          }
+        }
+      ],
+      "bottom5": [
+        {
+          "params": {
+            "episodes": 10000,
+            "epsilon": 0.7,
+            "gamma": 0.99,
+            "lr": 0.1
+          },
+          "metrics": {
+            "reward_mean": -2.0,
+            "reward_std": 45.49461506596138,
+            "success_rate": 0.95,
+            "train_time": 1.544461965560913,
+            "test_episodes": 100,
+            "epsilon_tolerance": 4.549461506596138
+          }
+        },
+        {
+          "params": {
+            "episodes": 10000,
+            "epsilon": 0.9,
+            "gamma": 0.99,
+            "lr": 0.1
+          },
+          "metrics": {
+            "reward_mean": -0.29,
+            "reward_std": 40.84294186270132,
+            "success_rate": 0.96,
+            "train_time": 25.77661418914795,
+            "test_episodes": 100,
+            "epsilon_tolerance": 4.0842941862701325
+          }
+        },
+        {
+          "params": {
+            "episodes": 10000,
+            "epsilon": 0.7,
+            "gamma": 0.95,
+            "lr": 0.1
+          },
+          "metrics": {
+            "reward_mean": 1.84,
+            "reward_std": 35.58250131736104,
+            "success_rate": 0.97,
+            "train_time": 1.5433309078216553,
+            "test_episodes": 100,
+            "epsilon_tolerance": 3.5582501317361044
+          }
+        },
+        {
+          "params": {
+            "episodes": 10000,
+            "epsilon": 0.9,
+            "gamma": 0.95,
+            "lr": 0.1
+          },
+          "metrics": {
+            "reward_mean": 4.41,
+            "reward_std": 29.315557303247708,
+            "success_rate": 0.98,
+            "train_time": 1.9483740329742432,
+            "test_episodes": 100,
+            "epsilon_tolerance": 2.931555730324771
+          }
+        },
+        {
+          "params": {
+            "episodes": 10000,
+            "epsilon": 0.8,
+            "gamma": 0.95,
+            "lr": 0.7
+          },
+          "metrics": {
+            "reward_mean": 7.35,
+            "reward_std": 2.5705057868053904,
+            "success_rate": 1.0,
+            "train_time": 13.284229040145874,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.25705057868053904
+          }
+        }
+      ]
+    }
   },
   "SARSA": {
     "params": {
       "episodes": 50000,
-      "epsilon": 0.5,
+      "epsilon": 0.7,
       "gamma": 0.99,
       "lr": 0.2
     },
     "metrics": {
-      "reward_mean": 2.09,
-      "reward_std": 35.63371858226418,
-      "success_rate": 0.97,
-      "train_time": 1.959886074066162,
+      "reward_mean": 7.92,
+      "reward_std": 2.704366839021659,
+      "success_rate": 1.0,
+      "train_time": 3.8451449871063232,
       "test_episodes": 100,
-      "epsilon_tolerance": 3.563371858226418
+      "epsilon_tolerance": 0.2704366839021659
     },
-    "timestamp": "2026-04-29T08:16:43"
+    "timestamp": "2026-04-29T21:06:04",
+    "last_benchmark": {
+      "timestamp": "2026-04-29T21:06:12",
+      "n_configs": 9,
+      "train_episodes": 50000,
+      "top5": [
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.7,
+            "gamma": 0.99,
+            "lr": 0.2
+          },
+          "metrics": {
+            "reward_mean": 7.92,
+            "reward_std": 2.704366839021659,
+            "success_rate": 1.0,
+            "train_time": 3.8451449871063232,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.2704366839021659
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.7,
+            "gamma": 0.99,
+            "lr": 0.3
+          },
+          "metrics": {
+            "reward_mean": 5.75,
+            "reward_std": 20.826125419770236,
+            "success_rate": 0.99,
+            "train_time": 4.052322149276733,
+            "test_episodes": 100,
+            "epsilon_tolerance": 2.0826125419770234
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.5,
+            "gamma": 0.99,
+            "lr": 0.2
+          },
+          "metrics": {
+            "reward_mean": -0.22,
+            "reward_std": 40.86773299315732,
+            "success_rate": 0.96,
+            "train_time": 3.433570623397827,
+            "test_episodes": 100,
+            "epsilon_tolerance": 4.086773299315732
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.6,
+            "gamma": 0.99,
+            "lr": 0.2
+          },
+          "metrics": {
+            "reward_mean": -10.93,
+            "reward_std": 59.504832576858824,
+            "success_rate": 0.91,
+            "train_time": 3.110684871673584,
+            "test_episodes": 100,
+            "epsilon_tolerance": 5.950483257685883
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.6,
+            "gamma": 0.99,
+            "lr": 0.3
+          },
+          "metrics": {
+            "reward_mean": -14.62,
+            "reward_std": 65.2151485469442,
+            "success_rate": 0.89,
+            "train_time": 3.0656991004943848,
+            "test_episodes": 100,
+            "epsilon_tolerance": 6.521514854694421
+          }
+        }
+      ],
+      "bottom5": [
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.5,
+            "gamma": 0.99,
+            "lr": 0.3
+          },
+          "metrics": {
+            "reward_mean": -98.11,
+            "reward_std": 103.962002193109,
+            "success_rate": 0.49,
+            "train_time": 3.0334558486938477,
+            "test_episodes": 100,
+            "epsilon_tolerance": 10.3962002193109
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.5,
+            "gamma": 0.99,
+            "lr": 0.4
+          },
+          "metrics": {
+            "reward_mean": -87.88,
+            "reward_std": 103.50200770999565,
+            "success_rate": 0.54,
+            "train_time": 2.5320258140563965,
+            "test_episodes": 100,
+            "epsilon_tolerance": 10.350200770999566
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.6,
+            "gamma": 0.99,
+            "lr": 0.4
+          },
+          "metrics": {
+            "reward_mean": -75.69,
+            "reward_std": 101.51558451784632,
+            "success_rate": 0.6,
+            "train_time": 2.794613838195801,
+            "test_episodes": 100,
+            "epsilon_tolerance": 10.151558451784632
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.7,
+            "gamma": 0.99,
+            "lr": 0.4
+          },
+          "metrics": {
+            "reward_mean": -23.55,
+            "reward_std": 74.16513668833895,
+            "success_rate": 0.85,
+            "train_time": 3.4127840995788574,
+            "test_episodes": 100,
+            "epsilon_tolerance": 7.416513668833895
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.6,
+            "gamma": 0.99,
+            "lr": 0.3
+          },
+          "metrics": {
+            "reward_mean": -14.62,
+            "reward_std": 65.2151485469442,
+            "success_rate": 0.89,
+            "train_time": 3.0656991004943848,
+            "test_episodes": 100,
+            "epsilon_tolerance": 6.521514854694421
+          }
+        }
+      ]
+    }
   },
   "Monte Carlo": {
     "params": {
       "episodes": 50000,
-      "epsilon": 0.8,
-      "gamma": 0.95,
+      "epsilon": 0.7,
+      "gamma": 0.99,
       "lr": 0.05
     },
     "metrics": {
-      "reward_mean": 6.05,
-      "reward_std": 20.888453748422837,
-      "success_rate": 0.99,
-      "train_time": 3.5517969131469727,
+      "reward_mean": 3.62,
+      "reward_std": 29.213620111174176,
+      "success_rate": 0.98,
+      "train_time": 3.2259559631347656,
       "test_episodes": 100,
-      "epsilon_tolerance": 2.0888453748422835
+      "epsilon_tolerance": 2.9213620111174174
     },
-    "timestamp": "2026-04-29T08:25:20"
+    "timestamp": "2026-04-29T21:08:11",
+    "last_benchmark": {
+      "timestamp": "2026-04-29T21:09:47",
+      "n_configs": 18,
+      "train_episodes": 50000,
+      "top5": [
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.7,
+            "gamma": 0.95,
+            "lr": 0.05
+          },
+          "metrics": {
+            "reward_mean": 5.81,
+            "reward_std": 20.880466948801697,
+            "success_rate": 0.99,
+            "train_time": 3.5123231410980225,
+            "test_episodes": 100,
+            "epsilon_tolerance": 2.0880466948801697
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.7,
+            "gamma": 0.99,
+            "lr": 0.05
+          },
+          "metrics": {
+            "reward_mean": 3.62,
+            "reward_std": 29.213620111174176,
+            "success_rate": 0.98,
+            "train_time": 3.2259559631347656,
+            "test_episodes": 100,
+            "epsilon_tolerance": 2.9213620111174174
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.8,
+            "gamma": 0.95,
+            "lr": 0.05
+          },
+          "metrics": {
+            "reward_mean": -27.22,
+            "reward_std": 78.23063082961814,
+            "success_rate": 0.83,
+            "train_time": 4.367814064025879,
+            "test_episodes": 100,
+            "epsilon_tolerance": 7.823063082961814
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.9,
+            "gamma": 0.95,
+            "lr": 0.05
+          },
+          "metrics": {
+            "reward_mean": -35.57,
+            "reward_std": 84.80793064330716,
+            "success_rate": 0.79,
+            "train_time": 6.415902853012085,
+            "test_episodes": 100,
+            "epsilon_tolerance": 8.480793064330715
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.7,
+            "gamma": 0.95,
+            "lr": 0.1
+          },
+          "metrics": {
+            "reward_mean": -37.49,
+            "reward_std": 86.33799800782967,
+            "success_rate": 0.78,
+            "train_time": 4.358566045761108,
+            "test_episodes": 100,
+            "epsilon_tolerance": 8.633799800782967
+          }
+        }
+      ],
+      "bottom5": [
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.8,
+            "gamma": 0.99,
+            "lr": 0.2
+          },
+          "metrics": {
+            "reward_mean": -825.72,
+            "reward_std": 897.2638974125729,
+            "success_rate": 0.18,
+            "train_time": 9.230554103851318,
+            "test_episodes": 100,
+            "epsilon_tolerance": 89.7263897412573
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.7,
+            "gamma": 0.99,
+            "lr": 0.2
+          },
+          "metrics": {
+            "reward_mean": -633.52,
+            "reward_std": 830.4856829590742,
+            "success_rate": 0.24,
+            "train_time": 7.176080942153931,
+            "test_episodes": 100,
+            "epsilon_tolerance": 83.04856829590742
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.9,
+            "gamma": 0.99,
+            "lr": 0.2
+          },
+          "metrics": {
+            "reward_mean": -612.5,
+            "reward_std": 819.954468248085,
+            "success_rate": 0.25,
+            "train_time": 9.257986068725586,
+            "test_episodes": 100,
+            "epsilon_tolerance": 81.99544682480851
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.9,
+            "gamma": 0.99,
+            "lr": 0.1
+          },
+          "metrics": {
+            "reward_mean": -352.06,
+            "reward_std": 641.6333971981197,
+            "success_rate": 0.39,
+            "train_time": 7.362404108047485,
+            "test_episodes": 100,
+            "epsilon_tolerance": 64.16333971981197
+          }
+        },
+        {
+          "params": {
+            "episodes": 50000,
+            "epsilon": 0.7,
+            "gamma": 0.99,
+            "lr": 0.1
+          },
+          "metrics": {
+            "reward_mean": -265.02,
+            "reward_std": 582.6643112461927,
+            "success_rate": 0.55,
+            "train_time": 5.206582069396973,
+            "test_episodes": 100,
+            "epsilon_tolerance": 58.266431124619274
+          }
+        }
+      ]
+    }
   },
   "Deep Q-Learning": {
     "params": {
       "episodes": 2000,
-      "epsilon": 0.8,
-      "gamma": 0.95,
-      "lr": 0.001
+      "epsilon": 0.9,
+      "gamma": 0.99,
+      "lr": 0.0005
     },
     "metrics": {
-      "reward_mean": 6.08,
-      "reward_std": 20.88285421105075,
-      "success_rate": 0.99,
-      "train_time": 41.42269706726074,
+      "reward_mean": 8.33,
+      "reward_std": 2.4374371786776377,
+      "success_rate": 1.0,
+      "train_time": 96.27871894836426,
       "test_episodes": 100,
-      "epsilon_tolerance": 2.0882854211050748
+      "epsilon_tolerance": 0.24374371786776378
     },
-    "timestamp": "2026-04-29T08:47:30"
+    "timestamp": "2026-04-29T21:26:06",
+    "last_benchmark": {
+      "timestamp": "2026-04-29T21:28:48",
+      "n_configs": 12,
+      "train_episodes": 2000,
+      "top5": [
+        {
+          "params": {
+            "episodes": 2000,
+            "epsilon": 0.9,
+            "gamma": 0.99,
+            "lr": 0.0005
+          },
+          "metrics": {
+            "reward_mean": 8.33,
+            "reward_std": 2.4374371786776377,
+            "success_rate": 1.0,
+            "train_time": 96.27871894836426,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.24374371786776378
+          }
+        },
+        {
+          "params": {
+            "episodes": 2000,
+            "epsilon": 0.9,
+            "gamma": 0.99,
+            "lr": 0.001
+          },
+          "metrics": {
+            "reward_mean": 8.02,
+            "reward_std": 2.4412291985800922,
+            "success_rate": 1.0,
+            "train_time": 79.67216396331787,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.2441229198580092
+          }
+        },
+        {
+          "params": {
+            "episodes": 2000,
+            "epsilon": 0.9,
+            "gamma": 0.95,
+            "lr": 0.0005
+          },
+          "metrics": {
+            "reward_mean": 7.94,
+            "reward_std": 2.813609781046405,
+            "success_rate": 1.0,
+            "train_time": 78.51179504394531,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.2813609781046405
+          }
+        },
+        {
+          "params": {
+            "episodes": 2000,
+            "epsilon": 0.8,
+            "gamma": 0.99,
+            "lr": 0.0005
+          },
+          "metrics": {
+            "reward_mean": 7.93,
+            "reward_std": 2.804478561158919,
+            "success_rate": 1.0,
+            "train_time": 80.63817501068115,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.2804478561158919
+          }
+        },
+        {
+          "params": {
+            "episodes": 2000,
+            "epsilon": 0.8,
+            "gamma": 0.95,
+            "lr": 0.0005
+          },
+          "metrics": {
+            "reward_mean": 7.92,
+            "reward_std": 2.8237563634279783,
+            "success_rate": 1.0,
+            "train_time": 60.41420102119446,
+            "test_episodes": 100,
+            "epsilon_tolerance": 0.28237563634279783
+          }
+        }
+      ],
+      "bottom5": [
+        {
+          "params": {
+            "episodes": 2000,
+            "epsilon": 0.9,
+            "gamma": 0.95,
+            "lr": 0.005
+          },
+          "metrics": {
+            "reward_mean": -6.32,
+            "reward_std": 53.18926207421946,
+            "success_rate": 0.93,
+            "train_time": 70.9862449169159,
+            "test_episodes": 100,
+            "epsilon_tolerance": 5.318926207421946
+          }
+        },
+        {
+          "params": {
+            "episodes": 2000,
+            "epsilon": 0.8,
+            "gamma": 0.95,
+            "lr": 0.001
+          },
+          "metrics": {
+            "reward_mean": 5.78,
+            "reward_std": 20.83198502303609,
+            "success_rate": 0.99,
+            "train_time": 59.0415518283844,
+            "test_episodes": 100,
+            "epsilon_tolerance": 2.083198502303609
+          }
+        },
+        {
+          "params": {
+            "episodes": 2000,
+            "epsilon": 0.8,
+            "gamma": 0.95,
+            "lr": 0.005
+          },
+          "metrics": {
+            "reward_mean": 5.96,
+            "reward_std": 20.861888696855807,
+            "success_rate": 0.99,
+            "train_time": 65.99943423271179,
+            "test_episodes": 100,
+            "epsilon_tolerance": 2.086188869685581
+          }
+        },
+        {
+          "params": {
+            "episodes": 2000,
+            "epsilon": 0.9,
+            "gamma": 0.95,
+            "lr": 0.001
+          },
+          "metrics": {
+            "reward_mean": 6.02,
+            "reward_std": 20.868147977240344,
+            "success_rate": 0.99,
+            "train_time": 82.38843703269958,
+            "test_episodes": 100,
+            "epsilon_tolerance": 2.0868147977240343
+          }
+        },
+        {
+          "params": {
+            "episodes": 2000,
+            "epsilon": 0.8,
+            "gamma": 0.99,
+            "lr": 0.005
+          },
+          "metrics": {
+            "reward_mean": 6.1,
+            "reward_std": 20.867438750359376,
+            "success_rate": 0.99,
+            "train_time": 75.76797580718994,
+            "test_episodes": 100,
+            "epsilon_tolerance": 2.0867438750359377
+          }
+        }
+      ]
+    }
   }
 }
