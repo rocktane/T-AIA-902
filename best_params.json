@@ -2,18 +2,69 @@
   "Q-Learning": {
     "params": {
       "episodes": 10000,
-      "epsilon": 0.9,
+      "epsilon": 0.7,
       "gamma": 0.99,
-      "lr": 0.3
+      "lr": 0.7
     },
     "metrics": {
-      "reward_mean": 8.63,
-      "reward_std": 2.5793603858321155,
+      "reward_mean": 8.39,
+      "reward_std": 2.58416330753302,
       "success_rate": 1.0,
-      "train_time": 1.7542588710784912,
+      "train_time": 0.6898801326751709,
       "test_episodes": 100,
-      "epsilon_tolerance": 0.25793603858321157
+      "epsilon_tolerance": 0.258416330753302
     },
-    "timestamp": "2026-04-17T16:35:30"
+    "timestamp": "2026-04-29T07:58:01"
+  },
+  "SARSA": {
+    "params": {
+      "episodes": 50000,
+      "epsilon": 0.5,
+      "gamma": 0.99,
+      "lr": 0.2
+    },
+    "metrics": {
+      "reward_mean": 2.09,
+      "reward_std": 35.63371858226418,
+      "success_rate": 0.97,
+      "train_time": 1.959886074066162,
+      "test_episodes": 100,
+      "epsilon_tolerance": 3.563371858226418
+    },
+    "timestamp": "2026-04-29T08:16:43"
+  },
+  "Monte Carlo": {
+    "params": {
+      "episodes": 50000,
+      "epsilon": 0.8,
+      "gamma": 0.95,
+      "lr": 0.05
+    },
+    "metrics": {
+      "reward_mean": 6.05,
+      "reward_std": 20.888453748422837,
+      "success_rate": 0.99,
+      "train_time": 3.5517969131469727,
+      "test_episodes": 100,
+      "epsilon_tolerance": 2.0888453748422835
+    },
+    "timestamp": "2026-04-29T08:25:20"
+  },
+  "Deep Q-Learning": {
+    "params": {
+      "episodes": 2000,
+      "epsilon": 0.8,
+      "gamma": 0.95,
+      "lr": 0.001
+    },
+    "metrics": {
+      "reward_mean": 6.08,
+      "reward_std": 20.88285421105075,
+      "success_rate": 0.99,
+      "train_time": 41.42269706726074,
+      "test_episodes": 100,
+      "epsilon_tolerance": 2.0882854211050748
+    },
+    "timestamp": "2026-04-29T08:47:30"
   }
 }

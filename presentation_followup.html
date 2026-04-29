@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Follow-up RL Taxi-v3</title>
+  <style>
+    :root {
+      --bg: #eceff3;
+      --paper: #ffffff;
+      --ink: #18212b;
+      --muted: #5f6b76;
+      --accent: #244a9b;
+      --accent-soft: #f3f6fc;
+      --line: #d9dee5;
+      --good: #275d47;
+      --warn: #7c5a18;
+      --bad: #8e2f2f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      counter-reset: slide;
+    }
+
+    .topbar {
+      display: none;
+    }
+
+    main {
+      width: 100%;
+      margin: 20px auto 40px;
+    }
+
+    .slide {
+      counter-increment: slide;
+      width: min(calc((100vh - 56px) * 16 / 9), calc(100vw - 48px));
+      aspect-ratio: 16 / 9;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 34px 38px 28px;
+      margin: 0 auto 24px;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      scroll-margin-top: 16px;
+      overflow: hidden;
+    }
+
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+
+    .slide-kicker {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .slide-number {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.08;
+    }
+
+    h1 {
+      font-size: clamp(34px, 4.4vw, 52px);
+      max-width: 11ch;
+    }
+
+    h2 {
+      font-size: clamp(28px, 3.4vw, 40px);
+      max-width: 18ch;
+    }
+
+    h3 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    p, li, td, th {
+      font-size: 18px;
+      line-height: 1.4;
+    }
+
+    p {
+      margin: 0 0 10px;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    .lead {
+      font-size: 22px;
+      color: var(--muted);
+      max-width: 56ch;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 16px 18px;
+    }
+
+    .metric {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .small {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      background: #f7f8fb;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      padding: 14px 16px;
+      background: #fbfcfe;
+      border-radius: 6px;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .success {
+      color: var(--good);
+      font-weight: 700;
+    }
+
+    .warning {
+      color: var(--warn);
+      font-weight: 700;
+    }
+
+    .danger {
+      color: var(--bad);
+      font-weight: 700;
+    }
+
+    .bars {
+      display: grid;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 160px 1fr 70px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .bar-track {
+      position: relative;
+      height: 14px;
+      background: #edf0f2;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .bar-fill.alt {
+      background: var(--good);
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .slide-end {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    @media (max-width: 900px) {
+      .slide {
+        padding: 22px 18px;
+        width: calc(100vw - 24px);
+        height: auto;
+        aspect-ratio: auto;
+        overflow: visible;
+      }
+
+      .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+      }
+
+      .bar-row {
+        grid-template-columns: 1fr;
+      }
+
+      p, li, td, th {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">RL Taxi-v3 · Follow-up</div>
+    <nav class="nav">
+      <a href="#slide-1">1</a>
+      <a href="#slide-2">2</a>
+      <a href="#slide-3">3</a>
+      <a href="#slide-4">4</a>
+      <a href="#slide-5">5</a>
+      <a href="#slide-6">6</a>
+      <a href="#slide-7">7</a>
+      <a href="#slide-8">8</a>
+      <a href="#slide-9">9</a>
+      <a href="#slide-10">10</a>
+      <a href="#slide-11">11</a>
+    </nav>
+  </div>
+
+  <main>
+    <section class="slide" id="slide-1">
+      <div>
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Slide 1</div>
+            <h1>Benchmark et comparaison finale des agents RL sur Taxi-v3</h1>
+          </div>
+          <div class="slide-number">Follow-up encadrant</div>
+        </div>
+        <p class="lead">
+          Objectif : apprendre à un agent à récupérer puis déposer un passager dans
+          l’environnement <strong>Taxi-v3</strong>, et comparer plusieurs approches
+          d’apprentissage par renforcement.
+        </p>
+        <div class="grid-3" style="margin-top: 28px;">
+          <div class="card">
+            <div class="label">Environnement</div>
+            <p>500 états, 6 actions, récompense terminale positive, pénalité par étape.</p>
+          </div>
+          <div class="card">
+            <div class="label">Agents comparés</div>
+            <p>Q-Learning, SARSA, Monte Carlo et Deep Q-Learning.</p>
+          </div>
+          <div class="card">
+            <div class="label">Fil narratif</div>
+            <p>1. Optimiser chaque agent. 2. Les comparer dans un mode temps limité.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-end">
+        <span>Idée centrale : ne pas comparer “au feeling”, mais avec un protocole commun.</span>
+        <span>1 / 11</span>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-2">
+      <div>
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Slide 2</div>
+            <h2>Protocole de benchmark : objectif</h2>
+          </div>
+          <div class="slide-number">Pourquoi benchmarker ?</div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Ce que fait le benchmark</h3>
+            <ul>
+              <li>Tester plusieurs configurations d’un même agent.</li>
+              <li>Mesurer leurs performances avec les mêmes règles.</li>
+              <li>Conserver la meilleure configuration trouvée.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Pourquoi c’est utile</h3>
+            <ul>
+              <li>Les hyperparamètres influencent fortement les résultats.</li>
+              <li>Deux algorithmes ne sont comparables que s’ils sont bien réglés.</li>
+              <li>Le benchmark prépare la comparaison finale en mode temps limité.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout" style="margin-top: 22px;">
+          Le benchmark ne cherche pas encore le meilleur modèle global :
+          il cherche d’abord la <strong>meilleure configuration pour chaque agent</strong>.
+        </div>
+      </div>
+      <div class="slide-end">
+        <span>Étape 1 de notre démarche.</span>
+        <span>2 / 11</span>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-3">
+      <div>
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Slide 3</div>
+            <h2>Protocole de benchmark : espace de recherche</h2>
+          </div>
+          <div class="slide-number">Grid-search</div>
+        </div>
+        <div class="grid-4">
+          <div class="card">
+            <h3>Q-Learning</h3>
+            <p><span class="tag">10000 épisodes</span></p>
+            <p><strong>ε</strong> : 0.7, 0.8, 0.9</p>
+            <p><strong>γ</strong> : 0.95, 0.99</p>
+            <p><strong>lr</strong> : 0.1, 0.3, 0.5, 0.7</p>
+          </div>
+          <div class="card">
+            <h3>SARSA</h3>
+            <p><span class="tag">20000 puis 50000 épisodes</span></p>
+            <p><strong>ε</strong> : 0.7, 0.8, 0.9 puis 0.5, 0.6, 0.7</p>
+            <p><strong>γ</strong> : 0.95, 0.99 puis 0.99</p>
+            <p><strong>lr</strong> : 0.05, 0.1, 0.2, 0.3 puis 0.2, 0.3, 0.4</p>
+          </div>
+          <div class="card">
+            <h3>Monte Carlo</h3>
+            <p><span class="tag">50000 épisodes</span></p>
+            <p><strong>ε</strong> : 0.7, 0.8, 0.9</p>
+            <p><strong>γ</strong> : 0.95, 0.99</p>
+            <p><strong>lr</strong> : 0.05, 0.1, 0.2</p>
+          </div>
+          <div class="card">
+            <h3>Deep Q-Learning</h3>
+            <p><span class="tag">2000 épisodes</span></p>
+            <p><strong>ε</strong> : 0.8, 0.9</p>
+            <p><strong>γ</strong> : 0.95, 0.99</p>
+            <p><strong>lr</strong> : 0.0005, 0.001, 0.005</p>
+          </div>
+        </div>
+        <p class="footer-note">
+          Méthode utilisée : <strong>grid-search</strong>, c’est-à-dire test exhaustif de toutes
+          les combinaisons de valeurs dans une grille donnée.
+        </p>
+      </div>
+      <div class="slide-end">
+        <span>Les grilles ne sont pas identiques car les agents n’ont pas la même sensibilité aux paramètres.</span>
+        <span>3 / 11</span>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-4">
+      <div>
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Slide 4</div>
+            <h2>Protocole de benchmark : critère de succès</h2>
+          </div>
+          <div class="slide-number">Comment décider du “meilleur” ?</div>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <div class="metric">1</div>
+            <div class="label">Filtre qualité</div>
+            <p>On demande d’abord un <strong>taux de succès ≥ 95%</strong>.</p>
+          </div>
+          <div class="card">
+            <div class="metric">2</div>
+            <div class="label">Critère principal</div>
+            <p>Parmi les agents fiables, on prend le <strong>reward moyen</strong> le plus élevé.</p>
+          </div>
+          <div class="card">
+            <div class="metric">3</div>
+            <div class="label">Départage</div>
+            <p>Si deux rewards sont trop proches, on regarde le <strong>temps d’entraînement</strong>.</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top: 22px;">
+          Pourquoi ce choix ? Parce que sur Taxi-v3, un agent peut réussir sans être très efficace.
+          Le reward moyen distingue les politiques qui réussissent <strong>vite</strong> de celles qui
+          réussissent mais avec trop d’étapes ou trop de pénalités.
+        </div>
+      </div>
+      <div class="slide-end">
+        <span>Cette règle correspond à celle implémentée dans le projet.</span>
+        <span>4 / 11</span>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-5">
+      <div>
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Slide 5</div>
+            <h2>Résultats du benchmark : meilleure configuration par agent</h2>
+          </div>
+          <div class="slide-number">Étape 1 terminée</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Meilleure configuration observée</th>
+              <th>Reward moyen</th>
+              <th>Succès</th>
+              <th>Lecture rapide</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Q-Learning</strong></td>
+              <td>ε=0.9, γ=0.99, lr=0.5</td>
+              <td>8.44</td>
+              <td>100%</td>
+              <td>Très fort, très stable.</td>
+            </tr>
+            <tr>
+              <td><strong>SARSA</strong></td>
+              <td>ε=0.6, γ=0.99, lr=0.3</td>
+              <td>3.54</td>
+              <td>98%</td>
+              <td>Valide mais plus prudent.</td>
+            </tr>
+            <tr>
+              <td><strong>Monte Carlo</strong></td>
+              <td>ε=0.8, γ=0.95, lr=0.05</td>
+              <td>6.05</td>
+              <td>99%</td>
+              <td>Sensible aux paramètres.</td>
+            </tr>
+            <tr>
+              <td><strong>Deep Q-Learning</strong></td>
+              <td>ε=0.9, γ=0.95, lr=0.0005</td>
+              <td>8.07</td>
+              <td>100%</td>
+              <td>Bon, mais très coûteux.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top: 22px;">
+          À la fin du benchmark, <strong>Q-Learning</strong> est déjà le candidat le plus fort,
+          mais on ne conclut pas encore : il faut comparer les agents optimisés dans le même cadre final.
+        </div>
+      </div>
+      <div class="slide-end">
+        <span>Le benchmark sert à préparer la comparaison finale, pas à la remplacer.</span>
+        <span>5 / 11</span>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-6">
+      <div>
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Slide 6</div>
+            <h2>Mode temps limité : règles du jeu</h2>
+          </div>
+          <div class="slide-number">Étape 2</div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Ce qui est figé</h3>
+            <ul>
+              <li>On recharge les <strong>meilleurs paramètres sauvegardés</strong> pour chaque agent.</li>
+              <li>On ne fait plus de tuning pendant cette étape.</li>
+              <li>Le même seed inconnu est utilisé pour tous les agents au test.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Ce qui est chronométré</h3>
+            <ul>
+              <li>Le <strong>test seulement</strong> est limité en temps.</li>
+              <li>Dans notre essai final : <strong>5 secondes par agent</strong>.</li>
+              <li>On compare ensuite reward moyen, taux de succès et nombre d’épisodes testés.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="footer-note">
+          Idée : mettre tous les agents dans une situation d’évaluation commune, avec un environnement non connu à l’avance.
+        </p>
+      </div>
+      <div class="slide-end">
+        <span>Le mode temps limité répond à la question : quel agent gagne à la fin ?</span>
+        <span>6 / 11</span>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-7">
+      <div>
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Slide 7</div>
+            <h2>Mode temps limité : résultat final</h2>
+          </div>
+          <div class="slide-number">Conclusion comparative</div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Scores obtenus</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Agent</th>
+                  <th>Reward</th>
+                  <th>Succès</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Q-Learning</td><td>7.90</td><td>100.0%</td></tr>
+                <tr><td>SARSA</td><td>6.61</td><td>99.4%</td></tr>
+                <tr><td>Monte Carlo</td><td>-16.79</td><td>88.3%</td></tr>
+                <tr><td>Deep Q-Learning</td><td>6.48</td><td>99.3%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h3>Lecture simple</h3>
+            <div class="bars">
+              <div class="bar-row">
+                <span>Q-Learning</span>
+                <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+                <strong>7.90</strong>
+              </div>
+              <div class="bar-row">
+                <span>SARSA</span>
+                <div class="bar-track"><div class="bar-fill alt" style="width:83.7%"></div></div>
+                <strong>6.61</strong>
+              </div>
+              <div class="bar-row">
+                <span>Deep Q-Learning</span>
+                <div class="bar-track"><div class="bar-fill alt" style="width:82%"></div></div>
+                <strong>6.48</strong>
+              </div>
+              <div class="bar-row">
+                <span>Monte Carlo</span>
+                <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>
+                <strong>-16.79</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="callout" style="margin-top: 22px;">
+          <strong>Conclusion :</strong> le meilleur agent final est <span class="success">Q-Learning</span>,
+          car il combine le meilleur reward moyen et le meilleur taux de succès dans le cadre temps limité.
+        </div>
+      </div>
+      <div class="slide-end">
+        <span>C’est la conclusion principale à retenir pour la présentation.</span>
+        <span>7 / 11</span>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-8">
+      <div>
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Slide 8</div>
+            <h2>Paramètres de Q-Learning : epsilon (ε)</h2>
+          </div>
+          <div class="slide-number">Exploration / exploitation</div>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Définition</h3>
+            <p><strong>Epsilon</strong> contrôle la probabilité d’explorer au lieu de choisir l’action actuellement jugée meilleure.</p>
+          </div>
+          <div class="card">
+            <h3>Si ε est trop haut</h3>
+            <p>L’agent explore beaucoup, mais peut rester trop longtemps aléatoire et apprendre moins vite.</p>
+          </div>
+          <div class="card">
+            <h3>Si ε est trop bas</h3>
+            <p>L’agent exploite trop tôt ce qu’il connaît déjà, et risque de rater de meilleures stratégies.</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top: 22px;">
+          Dans nos résultats, un <strong>epsilon initial élevé</strong> a bien marché pour Q-Learning :
+          cela suggère qu’au début, explorer largement aide à découvrir les bonnes séquences d’actions dans Taxi-v3.
+        </div>
+      </div>
+      <div class="slide-end">
+        <span>À définir simplement : explorer = essayer ; exploiter = utiliser ce qu’on a appris.</span>
+        <span>8 / 11</span>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-9">
+      <div>
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Slide 9</div>
+            <h2>Paramètres de Q-Learning : gamma (γ)</h2>
+          </div>
+          <div class="slide-number">Horizon de planification</div>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Définition</h3>
+            <p><strong>Gamma</strong> indique l’importance donnée aux récompenses futures.</p>
+          </div>
+          <div class="card">
+            <h3>Gamma élevé</h3>
+            <p>L’agent réfléchit plus “long terme” et valorise mieux une récompense qui arrive en fin d’épisode.</p>
+          </div>
+          <div class="card">
+            <h3>Gamma faible</h3>
+            <p>L’agent devient plus myope et privilégie davantage l’immédiat.</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top: 22px;">
+          Sur Taxi-v3, la récompense importante arrive à la fin quand le passager est bien déposé.
+          C’est pourquoi <strong>γ = 0.99</strong> a souvent été un bon choix pour Q-Learning et SARSA.
+        </div>
+      </div>
+      <div class="slide-end">
+        <span>Gamma répond à la question : “à quel point le futur compte-t-il ?”</span>
+        <span>9 / 11</span>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-10">
+      <div>
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Slide 10</div>
+            <h2>Paramètres de Q-Learning : learning rate (α)</h2>
+          </div>
+          <div class="slide-number">Vitesse de mise à jour</div>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Définition</h3>
+            <p>Le <strong>learning rate</strong> détermine à quel point l’agent modifie sa Q-table quand il reçoit une nouvelle information.</p>
+          </div>
+          <div class="card">
+            <h3>Trop faible</h3>
+            <p>L’apprentissage est lent : l’agent prend beaucoup de temps à corriger ses estimations.</p>
+          </div>
+          <div class="card">
+            <h3>Trop élevé</h3>
+            <p>L’apprentissage devient instable : l’agent peut sur-réagir aux dernières expériences.</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top: 22px;">
+          Dans notre benchmark Q-Learning, une valeur <strong>intermédiaire à élevée</strong>
+          a bien fonctionné. À l’inverse, pour Monte Carlo et Deep Q-Learning, il fallait des learning rates plus prudents.
+        </div>
+      </div>
+      <div class="slide-end">
+        <span>Alpha répond à la question : “à quelle vitesse l’agent apprend-il ?”</span>
+        <span>10 / 11</span>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-11">
+      <div>
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Slide 11</div>
+            <h2>Lien avec nos résultats, synthèse et limites</h2>
+          </div>
+          <div class="slide-number">Ce qu’on retient</div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Exemple concret</h3>
+            <p><strong>Q-Learning</strong> a bien supporté un epsilon élevé et un gamma élevé.</p>
+            <p><strong>SARSA</strong> a eu besoin de plus d’épisodes et d’une exploration plus modérée.</p>
+            <p><strong>Monte Carlo</strong> s’est montré très sensible au learning rate.</p>
+            <p><strong>Deep Q-Learning</strong> a bien appris, mais avec un coût d’entraînement très élevé.</p>
+          </div>
+          <div class="card">
+            <h3>Synthèse finale</h3>
+            <ul>
+              <li><strong>Le benchmark</strong> a permis de trouver une bonne configuration pour chaque agent.</li>
+              <li><strong>Le mode temps limité</strong> montre que Q-Learning est le meilleur modèle final.</li>
+              <li><strong>Limite</strong> : DQN est coûteux pour un petit environnement discret comme Taxi-v3.</li>
+              <li><strong>Suite possible</strong> : affiner encore les métriques ou comparer sur plusieurs seeds.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout" style="margin-top: 22px;">
+          Message final : pour un environnement discret et de petite taille comme Taxi-v3,
+          les <strong>méthodes tabulaires</strong>, en particulier <strong>Q-Learning</strong>,
+          restent les plus adaptées.
+        </div>
+      </div>
+      <div class="slide-end">
+        <span>Fin de présentation.</span>
+        <span>11 / 11</span>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
