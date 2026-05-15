@@ -1,4 +1,5 @@
 from itertools import product
+import os
 import random
 import time
 import questionary
@@ -11,7 +12,13 @@ from agents.deep_q_learning import DeepQLearning
 from agents.sarsa import Sarsa
 from tabulate import tabulate
 from report import generate_report, rolling_mean
-from best_params import save_best_params, get_best_params, load_best_params, save_benchmark_runs
+from best_params import (
+    save_best_params,
+    get_best_params,
+    load_best_params,
+    save_benchmark_runs,
+    resolve_checkpoint_path,
+)
 
 results = {}
 agents = ["Bruteforce", "Q-Learning", "SARSA", "Monte Carlo", "Deep Q-Learning"]
@@ -59,6 +66,14 @@ def create_benchmark_configs(epsilons, gammas, lrs):
         {"epsilon": epsilon, "gamma": gamma, "lr": lr}
         for epsilon, gamma, lr in product(epsilons, gammas, lrs)
     ]
+
+
+def slugify_report_name(name):
+    return (
+        name.lower()
+        .replace(" ", "-")
+        .replace("_", "-")
+    )
 
 
 agent_classes = {
@@ -132,18 +147,41 @@ if mode == "Temps limité":
         if entry is None:
             print(f"⚠️  {name} : aucun best_params enregistré. Agent ignoré (lance un benchmark d'abord).")
             continue
-        params = entry["params"]
+        params = entry.get("params") if isinstance(entry, dict) else None
+        metrics = entry.get("metrics") if isinstance(entry, dict) else None
+        if params is None or metrics is None:
+            print(
+                f"⚠️  {name} : entrée best_params incomplète "
+                f"(pas de best validé avec params/metrics). Agent ignoré."
+            )
+            continue
         print(f"\n▶ {name} — params {params}")
         agent = agent_classes[name](
             epsilon=float(params["epsilon"]),
             gamma=float(params["gamma"]),
             lr=float(params["lr"]),
         )
-        n_train = int(params["episodes"])
-        pbar = tqdm(total=n_train, desc=f"  {name} (train)", unit="ep", ncols=80, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}")
-        train_data = agent.train(n_train, on_episode=lambda ep: pbar.update(1), early_stopping=True)
-        pbar.close()
-        print(f"  Entraîné en {train_data['training_time']:.2f}s ({train_data['n_episodes']} ép.)")
+        checkpoint_path = resolve_checkpoint_path(entry)
+        if checkpoint_path and os.path.exists(checkpoint_path):
+            agent.load_checkpoint(checkpoint_path)
+            train_data = {
+                "training_time": metrics["train_time"],
+                "n_episodes": int(params["episodes"]),
+                "reward_history": [],
+                "steps_history": [],
+                "success_history": [],
+                "early_stopped_at": None,
+                "loaded_from_checkpoint": True,
+            }
+            print(f"  Checkpoint chargé : {checkpoint_path}")
+        else:
+            n_train = int(params["episodes"])
+            pbar = tqdm(total=n_train, desc=f"  {name} (train)", unit="ep", ncols=80, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}")
+            train_data = agent.train(n_train, on_episode=lambda ep: pbar.update(1), early_stopping=True)
+            pbar.close()
+            train_data["loaded_from_checkpoint"] = False
+            print("  Aucun checkpoint exploitable trouvé, ré-entraînement effectué.")
+            print(f"  Entraîné en {train_data['training_time']:.2f}s ({train_data['n_episodes']} ép.)")
 
         test_stats = agent.test_time_limited(time_limit, seed=unseen_seed)
         p_success = f"{(100 * test_stats['success_rate']):.1f}%"
@@ -260,7 +298,7 @@ elif mode == "Benchmark":
             "lr": config["lr"],
         }
         benchmark_runs.append({"label": label, "params": params, "metrics": metrics})
-        if save_best_params(benchmark_agent, params, metrics):
+        if save_best_params(benchmark_agent, params, metrics, agent=agent):
             new_best_saved = True
 
     save_benchmark_runs(benchmark_agent, benchmark_runs, train_episodes)
@@ -356,7 +394,7 @@ elif mode == "Battle":
             "epsilon_tolerance": s["epsilon_tolerance"],
         }
         params = {"episodes": train_ep, "epsilon": epsilon, "gamma": gamma, "lr": lr}
-        if save_best_params(name, params, metrics):
+        if save_best_params(name, params, metrics, agent=ag):
             print(f"  ✓ Nouveau best_params enregistré pour {name}")
 else:
     choices = questionary.checkbox(
@@ -538,10 +576,10 @@ if mode == "Benchmark" and benchmark_runs:
 
     if new_best_saved:
         print(f"\n✓ Nouveau best_params persistant enregistré pour {benchmark_agent}")
-        if previous_best is None:
+        prev_metrics = previous_best.get("metrics") if isinstance(previous_best, dict) else None
+        if prev_metrics is None:
             print("  Raison : premier enregistrement, aucun best antérieur.")
         else:
-            prev_metrics = previous_best["metrics"]
             tol = w_metrics["epsilon_tolerance"]
             if prev_metrics["success_rate"] < 0.95:
                 print(
@@ -564,5 +602,16 @@ if mode == "Benchmark" and benchmark_runs:
                 )
 
 if results and mode != "Battle":
-    report_path = generate_report(results)
+    report_path = "report.html"
+    report_title = "Rapport comparatif des agents RL - Taxi-v3"
+    if mode == "Benchmark":
+        report_path = os.path.join("reports", f"report-{slugify_report_name(benchmark_agent)}.html")
+        report_title = f"Rapport benchmark - {benchmark_agent}"
+    elif mode == "Temps limité":
+        report_path = os.path.join("reports", "report-temps-limite.html")
+        report_title = "Rapport - Mode temps limité"
+    elif mode == "Manuel":
+        report_path = os.path.join("reports", "report-manuel.html")
+        report_title = "Rapport - Mode manuel"
+    report_path = generate_report(results, output_path=report_path, report_title=report_title)
     print(f"\nRapport généré : {report_path}")

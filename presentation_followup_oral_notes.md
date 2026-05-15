@@ -1,260 +1,407 @@
-# Présentation follow-up RL Taxi-v3
+# Présentation follow-up RL Taxi-v4
 
-## Slide 1 — Benchmark et comparaison finale des agents RL sur Taxi-v3
+## Slide 1 — Introduction
 
+- Notre projet porte sur `Taxi-v4`, un environnement de reinforcement learning discret.
+- Le but est d'apprendre à un taxi à récupérer un passager puis à le déposer à la bonne destination.
+- L'environnement reste petit et structuré : `500 états`, `6 actions`, récompense positive à la réussite, pénalité par étape.
+- Nous avons comparé quatre agents :
+  - `Q-Learning`
+  - `SARSA`
+  - `Monte Carlo`
+  - `Deep Q-Learning`
+- Le fil directeur est en deux temps :
+  1. benchmarker chaque agent pour trouver ses meilleurs hyperparamètres ;
+  2. comparer ces meilleurs agents en mode temps limité.
 
-- Notre projet porte sur `Taxi-v3`, un environnement où un taxi doit récupérer un passager puis le déposer au bon endroit.
-- Nous avons comparé quatre approches : `Q-Learning`, `SARSA`, `Monte Carlo` et `Deep Q-Learning`.
-- Le fil de la présentation est simple :
-  1. montrer comment nous avons benchmarké chaque agent ;
-  2. puis montrer quel agent gagne à la fin en mode temps limité.
+Message simple :
 
-Petit point possible sur Taxi-v3 :
-
-- Taxi-v3 est un environnement classique de reinforcement learning proposé dans Gymnasium.
-- Le taxi se déplace sur une grille, doit récupérer un passager, puis le déposer à la bonne destination.
-- L’agent reçoit une pénalité à chaque étape, ce qui l’encourage à être efficace, et une récompense positive quand la mission est réussie.
-- C’est donc un bon environnement pour comparer des stratégies d’apprentissage, car on peut mesurer à la fois la réussite et l’efficacité.
-
-Concepts à bien comprendre :
-
-- Un **agent** est le programme qui prend des décisions.
-- Un **environnement** est le problème dans lequel l’agent agit.
-- En **reinforcement learning**, l’agent apprend par essais/erreurs à partir de récompenses.
-- `Taxi-v3` est un environnement **discret** : il y a un nombre fini d’états et un nombre fini d’actions.
+> L'idée n'est pas seulement de dire qui gagne, mais de montrer comment on construit une comparaison propre.
 
 ---
 
-## Slide 2 — Protocole de benchmark : objectif
+## Slide 2 — Protocole : objectif du benchmark
 
-- Le benchmark sert à comparer des configurations de manière reproductible.
-- L’idée est d’éviter une comparaison “au feeling”.
-- Avant de dire quel algorithme est le meilleur, il faut d’abord vérifier qu’on l’a testé avec de bons paramètres.
+- Le benchmark sert à comparer plusieurs configurations d'un même agent de façon reproductible.
+- Avant de comparer les algorithmes entre eux, il faut déjà s'assurer que chacun est bien réglé.
+- Nous sauvegardons les meilleures configurations dans `best_params.json`.
 
-Concepts à bien comprendre :
+À bien expliquer :
 
-- Un **benchmark** est un protocole de test.
-- Un **hyperparamètre** est une valeur fixée avant l’entraînement, par exemple `epsilon`, `gamma` ou `learning rate`.
-
-Message important :
-
-- Le benchmark ne cherche pas directement le meilleur modèle global.
-- Il cherche d’abord la meilleure configuration pour chaque modèle.
+- Un **hyperparamètre** est fixé avant l'entraînement : `epsilon`, `gamma`, `learning rate`, nombre d'épisodes.
+- Le benchmark ne cherche pas encore le meilleur agent global.
+- Il cherche d'abord la meilleure version de chaque agent.
 
 ---
 
-## Slide 3 — Protocole de benchmark : espace de recherche
+## Slide 3 — Grid-search
 
-- Nous avons utilisé un **grid-search**.
-- Cela veut dire qu’on choisit plusieurs valeurs pour chaque paramètre, puis qu’on teste toutes les combinaisons possibles.
-- Les grilles ne sont pas exactement les mêmes pour tous les agents, car ils n’ont pas les mêmes sensibilités.
+- Nous avons utilisé un `grid-search`.
+- Le principe est simple : on choisit plusieurs valeurs pour chaque hyperparamètre, puis on teste toutes les combinaisons possibles.
+- C'est une méthode exhaustive, simple à expliquer et cohérente pour une soutenance.
 
-Pourquoi ces valeurs ?
+Exemple utile :
 
- **Q-Learning**.
-    * 0.7, 0.8, 0.9 testent trois niveaux d’exploration initiale.
-    * Sur Taxi-v4, l’agent doit beaucoup explorer au début pour découvrir les bonnes séquences d’actions.
-    * Le code applique un epsilon decay pendant l’entraînement, on veut surtout mesurer si une exploration initiale plus ou moins forte aide la convergence
-  **Sarsa**
-  * episodes = 20000
-    * SARSA converge souvent un peu plus lentement que Q-Learning.
-  * epsilon = on garde la même logique que pour Q-Learning.
-    * SARSA dépend encore plus du comportement d’exploration, parce qu’il apprend à partir des actions réellement prises.
-    * un epsilon élevé peut donc changer fortement la qualité de la politique apprise.
-  * gamma = 0.95, 0.99
-    * même raison que pour Q-Learning : Taxi-v4 récompense surtout à la fin.
-    * il est donc pertinent de comparer une vision long terme assez forte (0.95) à très forte (0.99).
-  * lr = 0.05, 0.1, 0.2, 0.3
-    * SARSA est souvent plus sensible aux mises à jour agressives.
-    * comme il apprend la politique réellement suivie, il “subit” davantage les effets de l’exploration. Un lr trop haut peut le rendre plus instable.
+- Pour `Q-Learning` :
+  - `epsilon ∈ {0.7, 0.8, 0.9}`
+  - `gamma ∈ {0.95, 0.99}`
+  - `lr ∈ {0.1, 0.3, 0.5, 0.7}`
+  - donc `3 × 2 × 4 = 24 configurations`
 
-Puis :
-  * train_episodes = 50000
-      * le premier benchmark suggère que 20000 n’étaient pas suffisants.
-      * SARSA a besoin de plus de temps pour stabiliser sa politique.
-  * epsilon = 0.5, 0.6, 0.7
-      * donc on explore vers le bas, pour réduire l’impact négatif d’une exploration trop forte.
-  * gamma = 0.99
-      * c’est clairement la meilleure direction dans ce benchmark.
-      * inutile de gaspiller du temps sur 0.95 pour l’instant.
-  * lr = 0.2, 0.3, 0.4
-      * 0.3 est le meilleur point observé.
-      * on affine autour.
-      * 0.05 et 0.1 semblent trop faibles ici.
+Pourquoi les grilles diffèrent selon les agents :
 
-  **Monte-Carlo**
-  * Monte Carlo converge plus lentement, donc 50000 épisodes minimum
-  * gamma élevé reste pertinent
-  * lr doit rester plus prudent que Q-Learning
-  * epsilon peut rester assez élevé car il faut bien explorer avant que les retours complets d’épisode soient utiles
-
-  **Deep Q-Learning**
-  * DQN n’utilise pas du tout la même échelle de lr
-      * 0.0005 à 0.005 est une plage raisonnable pour Adam (l'optimiseur utilisé pour ajuster les poids) car le réseau de neurones est plus sensible qu’une Q-table
-  * 2000 épisodes suffisent pour un premier benchmark sur Taxi-v3
-  * epsilon et gamma restent dans la même logique que les autres agents
-
-
-Concepts à bien comprendre :
-
-- **Grid-search** : test exhaustif d’une grille de paramètres.
-- **Épisodes d’entraînement** : nombre de parties jouées pour apprendre.
-
-Point pédagogique utile :
-
-- On n’a pas mis la même grille partout, car un `learning rate` adapté à Q-Learning ne l’est pas forcément à DQN.
+- `Deep Q-Learning` met à jour un réseau de neurones, donc il a besoin de learning rates beaucoup plus faibles.
+- `Monte Carlo` est très sensible au learning rate.
+- `SARSA` a nécessité une seconde grille plus ciblée car la première était trop instable.
 
 ---
 
-## Slide 4 — Protocole de benchmark : critère de succès
+## Slide 4 — Critère de sélection
 
-
-- Nous avons défini une règle claire pour choisir la meilleure configuration.
-- D’abord, on demande un taux de succès d’au moins `95%`.
-- Ensuite, parmi les configurations fiables, on choisit celle avec le meilleur `reward moyen`.
-- Enfin, si deux résultats sont très proches, on regarde le temps d’entraînement.
-
-Concepts à bien comprendre :
-
-- **Taux de succès** : proportion d’épisodes réussis.
-- **Reward moyen** : score moyen obtenu sur les épisodes de test.
-- **Temps d’entraînement** : temps nécessaire pour apprendre.
+- Nous avons utilisé une règle en trois étapes :
+  1. taux de succès `≥ 95%`
+  2. parmi les configurations fiables, meilleur `reward moyen`
+  3. en cas de résultats proches, temps d'entraînement le plus court
 
 Pourquoi ce choix est logique :
 
-- Un agent peut réussir souvent mais être peu efficace.
-- Le reward moyen permet de distinguer un agent qui réussit vite d’un agent qui réussit en faisant trop d’étapes ou trop d’erreurs.
+- Un agent peut réussir sans être efficace.
+- Le `reward moyen` permet de distinguer un agent qui réussit vite d'un agent qui réussit avec trop de pas ou trop de pénalités.
+
+Formule orale simple :
+
+> On filtre d'abord la fiabilité, puis on départage sur l'efficacité.
 
 ---
 
-## Slide 5 — Résultats du benchmark : meilleure configuration par agent
+## Slide 5 — Benchmark Q-Learning
 
+- `Q-Learning` est l'agent tabulaire le plus performant au benchmark.
+- Meilleure configuration :
+  - `episodes = 10000`
+  - `epsilon = 0.9`
+  - `gamma = 0.99`
+  - `lr = 0.7`
+- Résultats :
+  - `reward_mean = 8.51`
+  - `success_rate = 100%`
+  - `train_time ≈ 1.38s`
 
-- Ici, on ne compare pas encore les agents directement entre eux.
-- On résume seulement la meilleure configuration trouvée pour chacun.
-- `Q-Learning` ressort déjà très fort.
-- `SARSA` a eu besoin d’un second benchmark plus ciblé pour devenir vraiment compétitif.
-- `Monte Carlo` a été plus sensible aux paramètres.
-- `Deep Q-Learning` a bien marché, mais avec un coût plus élevé.
+Lecture intéressante :
 
-- Le benchmark nous donne un bon point de départ pour la comparaison finale.
+- Les meilleures configs utilisent souvent un `epsilon` élevé.
+- `lr = 0.1` concentre beaucoup de mauvais résultats.
+- Donc ici, Q-Learning a besoin d'un apprentissage assez agressif.
 
-Si on te demande pourquoi SARSA a eu un second benchmark :
+Message à retenir :
 
-- Le premier benchmark n’atteignait pas le seuil de `95%` de succès.
-- Nous avons donc affiné la grille et augmenté le nombre d’épisodes.
+> Sur Taxi-v4, Q-Learning apprend vite et très bien dès qu'on lui donne assez d'exploration et un learning rate élevé.
 
 ---
 
-## Slide 6 — Mode temps limité : règles du jeu
+## Slide 6 — Benchmark SARSA
 
+- `SARSA` a demandé une recherche plus ciblée.
+- Meilleure configuration :
+  - `episodes = 50000`
+  - `epsilon = 0.5`
+  - `gamma = 0.99`
+  - `lr = 0.2`
+- Résultats :
+  - `reward_mean = 0.03`
+  - `success_rate = 96%`
+  - `train_time ≈ 2.02s`
 
-- Après le benchmark, on passe à la comparaison finale.
-- Cette fois, les paramètres sont figés : on recharge les meilleures configurations déjà enregistrées.
-- Le temps limité s’applique seulement à la phase de test.
-- Tous les agents sont testés dans un environnement inconnu avec le même budget de temps.
+Commentaire important :
 
-Nous avons choisi 5 secondes par agent comme compromis pratique : c’est assez court pour garder une comparaison rapide, mais assez long pour tester un grand nombre d’épisodes et obtenir des résultats stables.
+- SARSA franchit le seuil de fiabilité, mais son reward moyen reste bien inférieur à Q-Learning.
+- Il est plus prudent, plus sensible à la politique réellement suivie, donc souvent moins agressif dans l'optimisation.
 
-Concepts à bien comprendre :
+Si on te demande pourquoi il a l'air “moins bon” malgré 96% :
 
-- **Phase d’entraînement** : l’agent apprend.
-- **Phase de test** : on évalue ce qu’il a appris.
-- **Environnement inconnu** : l’agent ne connaît pas à l’avance la situation exacte qu’il va rencontrer.
+- Parce qu'il réussit souvent, mais avec davantage de pénalités ou de détours.
+
+---
+
+## Slide 7 — Benchmark Monte Carlo
+
+- `Monte Carlo` s'est révélé très sensible aux hyperparamètres.
+- Il a fallu monter à `100000 épisodes`.
+- Meilleure configuration :
+  - `episodes = 100000`
+  - `epsilon = 0.7`
+  - `gamma = 0.95`
+  - `lr = 0.05`
+- Résultats :
+  - `reward_mean = 5.83`
+  - `success_rate = 99%`
+  - `train_time ≈ 4.82s`
+
+Point important :
+
+- Monte Carlo peut très bien marcher, mais seulement avec un learning rate très prudent.
+- Dès que `lr` monte à `0.1` ou `0.2`, les performances se dégradent fortement.
+
+---
+
+## Slide 8 — Benchmark Deep Q-Learning
+
+- `Deep Q-Learning` utilise un réseau de neurones à la place d'une Q-table.
+- Meilleure configuration :
+  - `episodes = 2000`
+  - `epsilon = 0.9`
+  - `gamma = 0.99`
+  - `lr = 0.005`
+- Résultats :
+  - `reward_mean = 8.29`
+  - `success_rate = 100%`
+  - `train_time ≈ 50.83s`
+
+Lecture :
+
+- En performance brute, DQN est proche de Q-Learning.
+- Mais son coût d'entraînement est sans commune mesure.
+
+Message simple :
+
+> Le gain n'est pas suffisant pour justifier un modèle beaucoup plus lourd sur un problème aussi discret.
+
+---
+
+## Slide 9 — Synthèse benchmark
+
+- À ce stade, chaque agent a sa meilleure configuration sauvegardée.
+- On peut résumer :
+  - `Q-Learning` : meilleur compromis performance / coût
+  - `Deep Q-Learning` : très bon score, mais très coûteux
+  - `Monte Carlo` : bon potentiel, mais très sensible
+  - `SARSA` : fiable, mais moins efficace en reward
+
+Transition à faire :
+
+> Le benchmark nous donne les meilleurs candidats. La vraie comparaison finale consiste maintenant à les tester dans le même cadre.
+
+---
+
+## Slide 10 — Mode temps limité : règles
+
+- Le mode temps limité ne refait plus un tuning.
+- On recharge :
+  - les meilleurs hyperparamètres
+  - et surtout les `checkpoints` entraînés sauvegardés pendant le benchmark
+- Donc si un checkpoint existe, on ne repart pas d'un agent vierge.
+
+Ce qui est chronométré :
+
+- seulement le `test`
+- ici `5 secondes par agent`
+
+Ce qui est commun :
+
+- même `seed inconnu`
+- même environnement de test
+- même budget de temps
 
 Message important :
 
-- Cette étape répond à la vraie question finale : quel agent gagne dans un cadre commun ?
+> Cette fois, on compare les meilleurs agents déjà appris, pas leur capacité à être réentraînés depuis zéro.
 
 ---
 
-## Slide 7 — Mode temps limité : résultat final
+## Slide 11 — Résultat final en mode temps limité
 
+- Résultats obtenus :
+  - `Q-Learning` : `reward 7.92`, `100.0%`, `56 521 épisodes`
+  - `Monte Carlo` : `reward 6.37`, `99.3%`, `51 614 épisodes`
+  - `SARSA` : `reward 3.77`, `98.0%`, `46 850 épisodes`
+  - `Deep Q-Learning` : `reward 4.55`, `98.4%`, `9 011 épisodes`
 
-- Le meilleur agent final est `Q-Learning`.
-- Il a obtenu `100%` de succès et le meilleur reward moyen.
-- `SARSA` et `Deep Q-Learning` sont proches, mais restent un peu en dessous.
-- `Monte Carlo` est plus faible dans ce cadre final.
+Conclusion :
 
-Comment l’expliquer simplement :
+- `Q-Learning` reste premier.
+- `Monte Carlo` est la vraie surprise de la version checkpointée.
+- `Deep Q-Learning` garde une bonne politique, mais son inférence reste trop coûteuse.
 
-- `Q-Learning` combine fiabilité et efficacité.
-- Il réussit plus souvent et avec de meilleurs scores moyens.
-- Pour `SARSA`, il faut expliquer un peu plus : cet algorithme apprend en tenant compte de l’action qu’il va réellement faire ensuite, donc il intègre davantage l’effet de l’exploration. En pratique, cela le rend souvent plus prudent que Q-Learning : il réussit bien la tâche, mais il converge moins agressivement vers la stratégie la plus efficace. Dans nos résultats, cela se voit avec un très bon taux de succès, mais un reward moyen un peu plus faible.
-- Pour `Deep Q-Learning`, le point important n’est pas qu’il soit “mauvais”, au contraire : il obtient lui aussi un très bon taux de succès. Le vrai sujet, c’est le rapport coût / gain. Il demande beaucoup plus de temps d’entraînement qu’un algorithme tabulaire, alors qu’au final il ne fait pas mieux que Q-Learning sur Taxi-v3. Cela suggère qu’un réseau de neurones est ici plus lourd que nécessaire.
-- Pour `Monte Carlo`, l’explication intéressante est qu’il s’est montré plus sensible aux hyperparamètres et moins robuste dans le cadre final. Son reward négatif signifie qu’en moyenne il accumule encore trop de pénalités ou fait des trajets trop peu efficaces. Son taux de succès plus faible montre qu’il s’adapte moins bien que les autres agents dans cette comparaison finale.
+Formulation possible :
 
-
-> Q-Learning est le meilleur agent final, car il obtient à la fois le meilleur taux de succès et le meilleur reward moyen. SARSA et Deep Q-Learning restent solides, mais sont légèrement moins efficaces. Monte Carlo est plus en difficulté dans ce cadre final.
+> Q-Learning garde la première place, mais le protocole checkpointé montre aussi que Monte Carlo généralise bien mieux que ce qu'on aurait pu croire au premier regard.
 
 ---
 
-## Slide 8 — Paramètres de Q-Learning : epsilon
+## Slide 12 — Résultat final : lecture comparative
 
-- `Epsilon` contrôle l’équilibre entre exploration et exploitation.
-- Explorer, c’est essayer des actions nouvelles.
-- Exploiter, c’est choisir l’action qui semble déjà la meilleure.
-- Si epsilon est trop haut, l’agent explore trop longtemps.
-- S’il est trop bas, il risque de se bloquer trop tôt sur une stratégie imparfaite.
+- `Q-Learning` gagne sur les trois dimensions importantes :
+  - meilleur reward
+  - 100% de succès
+  - meilleur débit en nombre d'épisodes testés
+- `Monte Carlo` devient un très bon second.
+- `SARSA` reste solide mais moins efficace.
+- `Deep Q-Learning` souffre surtout du coût d'inférence.
+
+Point méthodologique utile :
+
+- Le résultat final ne dit pas que DQN est “mauvais”.
+- Il dit qu'il est moins adapté ici, compte tenu de la taille du problème et du coût calculatoire.
+
+---
+
+## Slide 13 — Epsilon
+
+- `Epsilon` contrôle l'équilibre entre exploration et exploitation.
+- Si `epsilon` est trop élevé, l'agent explore trop longtemps.
+- S'il est trop faible, il risque de se bloquer trop tôt sur une stratégie imparfaite.
+
+Lien avec les résultats :
+
+- Pour `Q-Learning`, un `epsilon = 0.9` a bien marché.
+- Cela suggère qu'il faut beaucoup explorer au départ pour découvrir les bonnes trajectoires dans Taxi-v4.
+
+---
+
+## Slide 14 — Gamma
+
+- `Gamma` mesure l'importance donnée aux récompenses futures.
+- Plus `gamma` est proche de `1`, plus l'agent raisonne à long terme.
+- Sur Taxi-v4, c'est pertinent car la grosse récompense arrive à la fin de l'épisode.
+
+Lien avec les résultats :
+
+- `gamma = 0.99` ressort très souvent.
+- Exception notable : `Monte Carlo` a mieux marché avec `gamma = 0.95`.
+
+---
+
+## Slide 15 — Learning rate
+
+- Le `learning rate` contrôle l'amplitude de la mise à jour.
+- Trop faible :
+  - apprentissage lent
+- Trop élevé :
+  - apprentissage instable
 
 Lien avec vos résultats :
 
-- Dans nos résultats, un `epsilon` initial élevé a bien marché pour Q-Learning.
-- Cela suggère qu’au début, il faut beaucoup explorer pour découvrir les bonnes trajectoires.
+- `Q-Learning` supporte bien `lr = 0.7`
+- `Monte Carlo` exige `lr = 0.05`
+- `Deep Q-Learning` travaille sur une autre échelle, ici `0.0005` à `0.005`
+
+Idée à dire :
+
+> Chaque algorithme a sa propre tolérance au learning rate, parce qu'ils ne mettent pas à jour leur connaissance de la même manière.
 
 ---
 
-## Slide 9 — Paramètres de Q-Learning : gamma
+## Slide 16 — Formule Q-Learning
 
-- `Gamma` mesure l’importance donnée aux récompenses futures.
-- Si gamma est élevé, l’agent valorise davantage les gains qui arrivent plus tard.
-- Si gamma est faible, il privilégie plus le court terme.
+Formule :
 
-Lien avec Taxi-v3 :
+`Q(s, a) ← Q(s, a) + α [ r + γ max Q(s', a') - Q(s, a) ]`
 
-- Dans Taxi-v3, la grosse récompense arrive à la fin, quand le passager est bien déposé.
-- Donc un `gamma` élevé est souvent pertinent.
+Comment l'expliquer :
 
-Formulation simple :
+- L'agent met à jour la case `Q(s,a)` après chaque transition.
+- Il regarde la meilleure action possible dans l'état suivant.
+- Il corrige donc sa valeur actuelle vers une cible optimiste.
 
-> Gamma répond à la question : est-ce que l’agent pense plutôt à tout de suite, ou à la récompense de fin d’épisode ?
+Point clé :
 
----
+- `Q-Learning` est `off-policy`.
+- Il apprend la meilleure politique théorique, même si l'action réellement jouée au pas suivant est différente.
 
-## Slide 10 — Paramètres de Q-Learning : learning rate
+Formulation orale :
 
-- Le `learning rate` indique à quelle vitesse l’agent modifie ce qu’il croit savoir.
-- S’il est trop faible, l’apprentissage est lent.
-- S’il est trop élevé, l’apprentissage peut devenir instable.
-
-Lien avec vos résultats :
-
-- Q-Learning supporte ici un learning rate assez élevé.
-- Monte Carlo et DQN demandent au contraire des learning rates plus prudents.
-
-Concept à retenir :
-
-- Le learning rate règle l’amplitude des mises à jour pendant l’apprentissage.
+> Q-Learning apprend à partir du meilleur futur possible.
 
 ---
 
-## Slide 11 — Conclusion et ouverture
+## Slide 17 — Formule SARSA
 
+Formule :
 
-- Le point principal, c’est que `Q-Learning` est le meilleur modèle sur `Taxi-v3`, mais surtout que cela nous dit quelque chose de plus général.
-- Ici, un algorithme plus complexe comme `Deep Q-Learning` n’apporte pas un meilleur résultat final, alors qu’il coûte beaucoup plus cher à entraîner.
-- Cela confirme une idée classique en reinforcement learning : la complexité de l’algorithme doit rester proportionnée à la complexité du problème.
+`Q(s, a) ← Q(s, a) + α [ r + γ Q(s', a') - Q(s, a) ]`
 
+Comment l'expliquer :
 
-> Pour Taxi-v3, le meilleur algorithme n’est pas le plus sophistiqué, mais le plus adapté au problème.
+- La structure ressemble à Q-Learning.
+- Mais ici, `a'` est l'action réellement choisie dans l'état suivant.
+- La mise à jour dépend donc de la politique effectivement suivie.
 
-Limites :
+Point clé :
 
-- On pourrait encore tester plusieurs seeds pour renforcer la robustesse.
-- On pourrait affiner certaines grilles d’hyperparamètres.
-- On pourrait utiliser une autre méthode de recherche que le grid-search.
-- On pourrait idéalement complexifier l’environnement pour voir à partir de quand `Deep Q-Learning` devient vraiment plus intéressant.
+- `SARSA` est `on-policy`.
+- Il apprend une politique plus prudente, car il intègre son propre comportement exploratoire.
 
-Ouverture possible :
+Formulation orale :
 
-> Une suite naturelle serait de rendre le problème plus difficile, par exemple avec un environnement plus grand ou moins facilement représentable sous forme de table. Dans ce cas, un algorithme comme DQN pourrait devenir plus pertinent.
+> SARSA apprend à partir du futur réellement suivi, pas du meilleur futur théorique.
+
+---
+
+## Slide 18 — Formule Monte Carlo
+
+Formules :
+
+- `G = r_t + γr_(t+1) + γ²r_(t+2) + ...`
+- `Q(s, a) ← Q(s, a) + α [ G - Q(s, a) ]`
+
+Comment l'expliquer :
+
+- Monte Carlo n'actualise pas la table à chaque pas.
+- Il attend la fin de l'épisode complet.
+- Puis il calcule le retour total `G` et corrige les couples état-action rencontrés.
+
+Point clé :
+
+- L'information est riche car elle résume tout l'épisode.
+- Mais elle est aussi plus bruitée, donc plus instable si le learning rate est trop grand.
+
+---
+
+## Slide 19 — Formule Deep Q-Learning
+
+Idée centrale :
+
+- DQN ne met pas à jour une Q-table.
+- Il met à jour les `poids` d'un réseau de neurones qui approxime `Q(s,a)`.
+
+Formules simples :
+
+- `cible = r + γ max Q_target(s', a')`
+- `perte = (Q_policy(s, a) - cible)²`
+
+Explication :
+
+- `policy_net` prédit les Q-values de l'état courant.
+- `target_net` calcule une cible plus stable.
+- La différence entre prédiction et cible donne une perte.
+- L'optimizer `Adam` ajuste ensuite les poids par descente de gradient.
+
+Éléments de stabilité à citer :
+
+- `replay buffer`
+- `target network`
+
+Phrase simple :
+
+> Les agents tabulaires mettent à jour des cases. DQN met à jour les paramètres d'une fonction approchée.
+
+---
+
+## Slide 20 — Conclusion
+
+- Le meilleur agent final reste `Q-Learning`.
+- C'est le meilleur compromis entre performance, robustesse et coût de calcul sur Taxi-v4.
+- `Deep Q-Learning` est très performant, mais trop coûteux pour ce problème.
+- `Monte Carlo` ressort finalement beaucoup mieux avec le protocole checkpointé.
+- `SARSA` reste fiable, mais moins efficace.
+
+Message final :
+
+> Sur Taxi-v4, le meilleur algorithme n'est pas le plus sophistiqué, mais le plus adapté au problème.
+
+Ouvertures possibles :
+
+- tester plusieurs `seeds`
+- affiner encore les grilles
+- essayer une autre méthode de recherche d'hyperparamètres, comme une optimisation bayésienne
+- complexifier l'environnement pour voir à partir de quand `Deep Q-Learning` devient vraiment plus pertinent

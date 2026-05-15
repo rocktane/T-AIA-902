@@ -125,3 +125,23 @@ class DeepQLearning(BaseAgent):
             "success_history": success_history,
             "early_stopped_at": es.triggered_at if es else None,
         }
+
+    def get_checkpoint_state(self):
+        return {
+            "policy_net": self.policy_net.state_dict(),
+            "target_net": self.target_net.state_dict(),
+            "optimizer": self.optimizer.state_dict(),
+            "epsilon": self.epsilon,
+            "gamma": self.gamma,
+            "step_count": self.step_count,
+            "replay_buffer": self.replay_buffer,
+        }
+
+    def load_checkpoint_state(self, state):
+        self.policy_net.load_state_dict(state["policy_net"])
+        self.target_net.load_state_dict(state["target_net"])
+        self.optimizer.load_state_dict(state["optimizer"])
+        self.epsilon = float(state["epsilon"])
+        self.gamma = float(state["gamma"])
+        self.step_count = int(state["step_count"])
+        self.replay_buffer = list(state["replay_buffer"])

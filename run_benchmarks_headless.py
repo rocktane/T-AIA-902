@@ -92,7 +92,7 @@ def run_grid(key):
         }
         label = f"{name} #{i} (e={eps}, g={gam}, lr={lr})"
         runs.append({"label": label, "params": params, "metrics": metrics})
-        save_best_params(name, params, metrics)
+        save_best_params(name, params, metrics, agent=agent)
         elapsed = time.time() - cfg_start
         print(
             f"  [{i:>2}/{len(configs)}] e={eps} g={gam} lr={lr}  "

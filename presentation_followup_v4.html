@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Follow-up RL Taxi-v3 — v4</title>
+  <title>Follow-up RL Taxi-v4 — v4</title>
   <style>
     :root {
       --bg: #eceff3;
@@ -509,10 +509,10 @@
         <div class="slide-number">Follow-up encadrant</div>
       </div>
       <div class="slide-body" style="justify-content: center;">
-        <h1>Benchmark et comparaison finale des agents RL sur Taxi-v3</h1>
+        <h1>Benchmark et comparaison finale des agents RL sur Taxi-v4</h1>
         <p class="lead">
           Apprendre à un agent à récupérer puis déposer un passager dans
-          l'environnement <strong>Taxi-v3</strong>, et comparer plusieurs approches
+          l'environnement <strong>Taxi-v4</strong>, et comparer plusieurs approches
           d'apprentissage par renforcement.
         </p>
         <div class="grid-3" style="margin-top: 20px;">
@@ -532,7 +532,7 @@
       </div>
       <div class="footer-bar">
         <div class="progress" id="prog-1"></div>
-        <span>1 / 15</span>
+        <span>1 / 20</span>
       </div>
       </div>
 
@@ -577,7 +577,7 @@
       </div>
       <div class="footer-bar">
         <div class="progress" id="prog-2"></div>
-        <span>2 / 15</span>
+        <span>2 / 20</span>
       </div>
       </div>
 
@@ -600,7 +600,7 @@
           <div class="lib-card">
             <div class="lib-role">Environnement</div>
             <div class="lib-name">gymnasium</div>
-            <p>Fournit l'environnement <code>Taxi-v3</code> : 500 états, 6 actions, fonctions <code>reset</code>, <code>step</code>, <code>render</code>. Standard de l'écosystème RL.</p>
+            <p>Fournit l'environnement <code>Taxi-v4</code> : 500 états, 6 actions, fonctions <code>reset</code>, <code>step</code>, <code>render</code>. Même tâche RL, version actuellement supportée par Gymnasium.</p>
           </div>
           <div class="lib-card">
             <div class="lib-role">Calcul numérique</div>
@@ -641,7 +641,7 @@
       </div>
       <div class="footer-bar">
         <div class="progress" id="prog-3"></div>
-        <span>3 / 15</span>
+        <span>3 / 20</span>
       </div>
       </div>
 
@@ -653,7 +653,7 @@
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 3 · Grid-search</div>
+          <div class="slide-kicker">Slide 4 · Grid-search</div>
           <h2>Trouver les bons paramètres avec un grid-search</h2>
         </div>
         <div class="slide-number">Recherche exhaustive</div>
@@ -678,15 +678,15 @@
             <p>Chaque algorithme n'a pas la même <strong>sensibilité</strong> aux paramètres.</p>
             <ul>
               <li><strong>Deep Q-Learning</strong> a besoin de learning rates beaucoup plus petits (0.0005–0.005) car il met à jour un réseau de neurones, pas une table.</li>
-              <li><strong>Monte Carlo</strong> a besoin de plus d'épisodes pour stabiliser ses estimations (50 000).</li>
-              <li><strong>SARSA</strong> a demandé un second tour avec une grille plus fine, car le premier n'atteignait pas 95% de succès.</li>
+              <li><strong>Monte Carlo</strong> reste l'algorithme le plus sensible au learning rate, avec un besoin de budget plus large.</li>
+              <li><strong>SARSA</strong> a été retesté sur une grille recentrée, car la première était trop instable.</li>
             </ul>
           </div>
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-3"></div>
-        <span>3 / 15</span>
+        <div class="progress" id="prog-4"></div>
+        <span>4 / 20</span>
       </div>
       </div>
 
@@ -697,7 +697,7 @@
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 4 · Critère</div>
+          <div class="slide-kicker">Slide 5 · Critère</div>
           <h2>Choisir la meilleure configuration</h2>
         </div>
         <div class="slide-number">Règle de sélection</div>
@@ -724,28 +724,28 @@
           </div>
         </div>
         <div class="callout">
-          Pourquoi cet ordre ? Sur Taxi-v3, un agent peut <strong>réussir</strong> sans être <strong>efficace</strong>.
+          Pourquoi cet ordre ? Sur Taxi-v4, un agent peut <strong>réussir</strong> sans être <strong>efficace</strong>.
           Le reward moyen distingue les politiques qui réussissent <strong>vite</strong> de celles qui réussissent
           mais avec trop d'étapes ou trop de pénalités.
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-4"></div>
-        <span>4 / 15</span>
+        <div class="progress" id="prog-5"></div>
+        <span>5 / 20</span>
       </div>
       </div>
 
     </section>
 
-    <!-- ========== SLIDE 5 ========== -->
+    <!-- ========== SLIDE 6 ========== -->
     <section class="slide" id="slide-5">
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 5 · Q-Learning</div>
+          <div class="slide-kicker">Slide 6 · Q-Learning</div>
           <h2>Q-Learning : top 5 et bottom 5 du benchmark</h2>
         </div>
-        <div class="slide-number">24 configurations testées · 10 000 ép. par config</div>
+        <div class="slide-number">24 configurations testées · budget 10 000 ép. · early stopping vers 1 800–3 700</div>
       </div>
       <div class="slide-body">
         <div class="two-col-fill">
@@ -754,42 +754,42 @@
             <div>
               <div class="config-row good">
                 <span class="rank">1</span>
-                <span class="params">ε=0.9 · γ=0.95 · lr=0.7</span>
-                <span class="reward">8.71</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.7</span>
+                <span class="reward">8.51</span>
                 <span class="succ">100%</span>
                 <div class="mini-bar"><div style="width: 100%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">2</span>
-                <span class="params">ε=0.7 · γ=0.99 · lr=0.5</span>
-                <span class="reward">8.37</span>
+                <span class="params">ε=0.9 · γ=0.95 · lr=0.3</span>
+                <span class="reward">8.23</span>
                 <span class="succ">100%</span>
                 <div class="mini-bar"><div style="width: 97%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">3</span>
-                <span class="params">ε=0.9 · γ=0.99 · lr=0.7</span>
-                <span class="reward">8.35</span>
+                <span class="params">ε=0.9 · γ=0.95 · lr=0.1</span>
+                <span class="reward">8.16</span>
                 <span class="succ">100%</span>
                 <div class="mini-bar"><div style="width: 97%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">4</span>
-                <span class="params">ε=0.8 · γ=0.99 · lr=0.5</span>
-                <span class="reward">8.26</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.5</span>
+                <span class="reward">8.07</span>
                 <span class="succ">100%</span>
                 <div class="mini-bar"><div style="width: 96%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">5</span>
                 <span class="params">ε=0.8 · γ=0.95 · lr=0.1</span>
-                <span class="reward">8.22</span>
+                <span class="reward">8.05</span>
                 <span class="succ">100%</span>
                 <div class="mini-bar"><div style="width: 95%"></div></div>
               </div>
             </div>
             <div class="agent-summary" style="margin-top: 8px;">
-              <div class="stat"><span>Point commun</span><strong>γ=0.99 dominant · lr ∈ [0.5 ; 0.7]</strong></div>
+              <div class="stat"><span>Point commun</span><strong>ε élevé fréquent · lr ≥ 0.3 quasi indispensable · γ=0.95 ou 0.99 fonctionnent</strong></div>
             </div>
           </div>
           <div class="card bad">
@@ -797,52 +797,52 @@
             <div>
               <div class="config-row bad">
                 <span class="rank">24</span>
-                <span class="params">ε=0.8 · γ=0.95 · lr=0.7</span>
-                <span class="reward">7.35</span>
-                <span class="succ">100%</span>
-                <div class="mini-bar"><div style="width: 87%"></div></div>
+                <span class="params">ε=0.7 · γ=0.95 · lr=0.1</span>
+                <span class="reward">-18.61</span>
+                <span class="succ">87%</span>
+                <div class="mini-bar"><div style="width: 2%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">23</span>
-                <span class="params">ε=0.9 · γ=0.95 · lr=0.1</span>
-                <span class="reward">4.41</span>
-                <span class="succ">98%</span>
-                <div class="mini-bar"><div style="width: 60%"></div></div>
+                <span class="params">ε=0.8 · γ=0.99 · lr=0.1</span>
+                <span class="reward">-4.17</span>
+                <span class="succ">94%</span>
+                <div class="mini-bar"><div style="width: 14%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">22</span>
-                <span class="params">ε=0.7 · γ=0.95 · lr=0.1</span>
-                <span class="reward">1.84</span>
+                <span class="params">ε=0.7 · γ=0.99 · lr=0.1</span>
+                <span class="reward">1.89</span>
                 <span class="succ">97%</span>
-                <div class="mini-bar"><div style="width: 36%"></div></div>
+                <div class="mini-bar"><div style="width: 24%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">21</span>
                 <span class="params">ε=0.9 · γ=0.99 · lr=0.1</span>
-                <span class="reward">-0.29</span>
-                <span class="succ">96%</span>
-                <div class="mini-bar"><div style="width: 16%"></div></div>
+                <span class="reward">5.63</span>
+                <span class="succ">99%</span>
+                <div class="mini-bar"><div style="width: 66%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">20</span>
-                <span class="params">ε=0.7 · γ=0.99 · lr=0.1</span>
-                <span class="reward">-2.00</span>
-                <span class="succ">95%</span>
-                <div class="mini-bar"><div style="width: 2%"></div></div>
+                <span class="params">ε=0.7 · γ=0.99 · lr=0.5</span>
+                <span class="reward">7.37</span>
+                <span class="succ">100%</span>
+                <div class="mini-bar"><div style="width: 87%"></div></div>
               </div>
             </div>
             <div class="agent-summary" style="margin-top: 8px;">
-              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>lr=0.1 (4 / 5 cas) — apprentissage trop lent</strong></div>
+              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>lr=0.1 concentre les vrais échecs : apprentissage trop lent ou pas assez stable</strong></div>
             </div>
           </div>
         </div>
         <div class="callout">
-          <strong class="kw">Lecture :</strong> Un lr trop faible (0.1) empêche la Q-table de converger en 10 000 épisodes. Les top configs tolèrent γ=0.95 ou γ=0.99 mais demandent un lr ≥ 0.5 pour apprendre vite.
+          <strong class="kw">Lecture :</strong> Pour Q-Learning, le principal facteur d'échec est clairement <strong>lr = 0.1</strong>. Dès qu'on passe à <strong>0.3–0.7</strong>, les scores montent fortement et plusieurs configs atteignent 100% de succès.
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-5"></div>
-        <span>5 / 15</span>
+        <div class="progress" id="prog-6"></div>
+        <span>6 / 20</span>
       </div>
       </div>
 
@@ -853,10 +853,10 @@
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 6 · SARSA</div>
+          <div class="slide-kicker">Slide 7 · SARSA</div>
           <h2>SARSA : top 5 et bottom 5 du benchmark</h2>
         </div>
-        <div class="slide-number">9 configurations testées · 50 000 ép. par config</div>
+        <div class="slide-number">9 configurations testées · budget 50 000 ép. · early stopping vers 7 800–8 100</div>
       </div>
       <div class="slide-body">
         <div class="two-col-fill">
@@ -865,42 +865,42 @@
             <div>
               <div class="config-row good">
                 <span class="rank">1</span>
-                <span class="params">ε=0.7 · γ=0.99 · lr=0.2</span>
-                <span class="reward">7.92</span>
-                <span class="succ">100%</span>
+                <span class="params">ε=0.5 · γ=0.99 · lr=0.2</span>
+                <span class="reward">0.03</span>
+                <span class="succ">96%</span>
                 <div class="mini-bar"><div style="width: 100%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">2</span>
                 <span class="params">ε=0.7 · γ=0.99 · lr=0.3</span>
-                <span class="reward">5.75</span>
-                <span class="succ">99%</span>
-                <div class="mini-bar"><div style="width: 98%"></div></div>
+                <span class="reward">-5.36</span>
+                <span class="succ">94%</span>
+                <div class="mini-bar"><div style="width: 89%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">3</span>
-                <span class="params">ε=0.5 · γ=0.99 · lr=0.2</span>
-                <span class="reward">-0.22</span>
-                <span class="succ">96%</span>
-                <div class="mini-bar"><div style="width: 92%"></div></div>
+                <span class="params">ε=0.6 · γ=0.99 · lr=0.2</span>
+                <span class="reward">-6.81</span>
+                <span class="succ">93%</span>
+                <div class="mini-bar"><div style="width: 87%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">4</span>
-                <span class="params">ε=0.6 · γ=0.99 · lr=0.2</span>
-                <span class="reward">-10.93</span>
-                <span class="succ">91%</span>
-                <div class="mini-bar"><div style="width: 82%"></div></div>
+                <span class="params">ε=0.5 · γ=0.99 · lr=0.3</span>
+                <span class="reward">-17.06</span>
+                <span class="succ">88%</span>
+                <div class="mini-bar"><div style="width: 73%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">5</span>
-                <span class="params">ε=0.6 · γ=0.99 · lr=0.3</span>
-                <span class="reward">-14.62</span>
-                <span class="succ">89%</span>
-                <div class="mini-bar"><div style="width: 79%"></div></div>
+                <span class="params">ε=0.5 · γ=0.99 · lr=0.4</span>
+                <span class="reward">-22.05</span>
+                <span class="succ">86%</span>
+                <div class="mini-bar"><div style="width: 66%"></div></div>
               </div>
             </div>
             <div class="agent-summary" style="margin-top: 8px;">
-              <div class="stat"><span>Point commun</span><strong>tous γ=0.99 · lr ∈ {0.2 ; 0.3}</strong></div>
+              <div class="stat"><span>Point commun</span><strong>tous γ=0.99 · seul lr=0.2 permet de franchir le seuil 95%</strong></div>
             </div>
           </div>
           <div class="card bad">
@@ -908,52 +908,52 @@
             <div>
               <div class="config-row bad">
                 <span class="rank">9</span>
-                <span class="params">ε=0.6 · γ=0.99 · lr=0.3</span>
-                <span class="reward">-14.62</span>
-                <span class="succ">89%</span>
-                <div class="mini-bar"><div style="width: 79%"></div></div>
+                <span class="params">ε=0.6 · γ=0.99 · lr=0.4</span>
+                <span class="reward">-114.47</span>
+                <span class="succ">41%</span>
+                <div class="mini-bar"><div style="width: 2%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">8</span>
                 <span class="params">ε=0.7 · γ=0.99 · lr=0.4</span>
-                <span class="reward">-23.55</span>
-                <span class="succ">85%</span>
-                <div class="mini-bar"><div style="width: 70%"></div></div>
+                <span class="reward">-54.70</span>
+                <span class="succ">70%</span>
+                <div class="mini-bar"><div style="width: 40%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">7</span>
-                <span class="params">ε=0.6 · γ=0.99 · lr=0.4</span>
-                <span class="reward">-75.69</span>
-                <span class="succ">60%</span>
-                <div class="mini-bar"><div style="width: 21%"></div></div>
+                <span class="params">ε=0.6 · γ=0.99 · lr=0.3</span>
+                <span class="reward">-50.42</span>
+                <span class="succ">72%</span>
+                <div class="mini-bar"><div style="width: 43%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">6</span>
-                <span class="params">ε=0.5 · γ=0.99 · lr=0.4</span>
-                <span class="reward">-87.88</span>
-                <span class="succ">54%</span>
-                <div class="mini-bar"><div style="width: 10%"></div></div>
+                <span class="params">ε=0.7 · γ=0.99 · lr=0.2</span>
+                <span class="reward">-23.37</span>
+                <span class="succ">85%</span>
+                <div class="mini-bar"><div style="width: 65%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">5</span>
                 <span class="params">ε=0.5 · γ=0.99 · lr=0.3</span>
-                <span class="reward">-98.11</span>
-                <span class="succ">49%</span>
-                <div class="mini-bar"><div style="width: 2%"></div></div>
+                <span class="reward">-22.05</span>
+                <span class="succ">86%</span>
+                <div class="mini-bar"><div style="width: 66%"></div></div>
               </div>
             </div>
             <div class="agent-summary" style="margin-top: 8px;">
-              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>lr ≥ 0.3 (5 / 5 cas) — apprentissage instable</strong></div>
+              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>lr = 0.4 est clairement destructeur ; lr = 0.3 reste souvent trop agressif</strong></div>
             </div>
           </div>
         </div>
         <div class="callout">
-          <strong class="kw">Lecture :</strong> SARSA est on-policy : il apprend la politique qu'il joue. Un lr modéré (0.2) avec ε=0.7 donne le meilleur compromis. À lr=0.4, l'apprentissage diverge complètement.
+          <strong class="kw">Lecture :</strong> SARSA reste <strong>beaucoup plus fragile</strong> que Q-Learning sur cette grille. Une seule configuration dépasse 95% de succès, et elle reste peu efficace en reward moyen.
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-6"></div>
-        <span>6 / 15</span>
+        <div class="progress" id="prog-7"></div>
+        <span>7 / 20</span>
       </div>
       </div>
 
@@ -964,10 +964,10 @@
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 7 · Monte Carlo</div>
+          <div class="slide-kicker">Slide 8 · Monte Carlo</div>
           <h2>Monte Carlo : top 5 et bottom 5 du benchmark</h2>
         </div>
-        <div class="slide-number">18 configurations testées · 50 000 ép. par config</div>
+        <div class="slide-number">18 configurations testées · budget 100 000 ép. · early stopping vers 15 300–16 000</div>
       </div>
       <div class="slide-body">
         <div class="two-col-fill">
@@ -977,41 +977,41 @@
               <div class="config-row good">
                 <span class="rank">1</span>
                 <span class="params">ε=0.7 · γ=0.95 · lr=0.05</span>
-                <span class="reward">5.81</span>
+                <span class="reward">5.83</span>
                 <span class="succ">99%</span>
                 <div class="mini-bar"><div style="width: 100%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">2</span>
                 <span class="params">ε=0.7 · γ=0.99 · lr=0.05</span>
-                <span class="reward">3.62</span>
-                <span class="succ">98%</span>
-                <div class="mini-bar"><div style="width: 100%"></div></div>
+                <span class="reward">-0.87</span>
+                <span class="succ">96%</span>
+                <div class="mini-bar"><div style="width: 85%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">3</span>
-                <span class="params">ε=0.8 · γ=0.95 · lr=0.05</span>
-                <span class="reward">-27.22</span>
-                <span class="succ">83%</span>
-                <div class="mini-bar"><div style="width: 96%"></div></div>
+                <span class="params">ε=0.8 · γ=0.99 · lr=0.05</span>
+                <span class="reward">-14.75</span>
+                <span class="succ">89%</span>
+                <div class="mini-bar"><div style="width: 68%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">4</span>
-                <span class="params">ε=0.9 · γ=0.95 · lr=0.05</span>
-                <span class="reward">-35.57</span>
-                <span class="succ">79%</span>
-                <div class="mini-bar"><div style="width: 95%"></div></div>
+                <span class="params">ε=0.8 · γ=0.95 · lr=0.05</span>
+                <span class="reward">-48.33</span>
+                <span class="succ">73%</span>
+                <div class="mini-bar"><div style="width: 39%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">5</span>
                 <span class="params">ε=0.7 · γ=0.95 · lr=0.1</span>
-                <span class="reward">-37.49</span>
-                <span class="succ">78%</span>
-                <div class="mini-bar"><div style="width: 95%"></div></div>
+                <span class="reward">-57.68</span>
+                <span class="succ">77%</span>
+                <div class="mini-bar"><div style="width: 31%"></div></div>
               </div>
             </div>
             <div class="agent-summary" style="margin-top: 8px;">
-              <div class="stat"><span>Point commun</span><strong>lr=0.05 (4 / 5 cas) — seul un lr très faible converge</strong></div>
+              <div class="stat"><span>Point commun</span><strong>lr=0.05 domine totalement ; γ=0.95 fait mieux que γ=0.99 dans ce run</strong></div>
             </div>
           </div>
           <div class="card bad">
@@ -1019,52 +1019,52 @@
             <div>
               <div class="config-row bad">
                 <span class="rank">18</span>
-                <span class="params">ε=0.7 · γ=0.99 · lr=0.1</span>
-                <span class="reward">-265.02</span>
-                <span class="succ">55%</span>
-                <div class="mini-bar"><div style="width: 67%"></div></div>
-              </div>
-              <div class="config-row bad">
-                <span class="rank">17</span>
-                <span class="params">ε=0.9 · γ=0.99 · lr=0.1</span>
-                <span class="reward">-352.06</span>
-                <span class="succ">39%</span>
-                <div class="mini-bar"><div style="width: 57%"></div></div>
-              </div>
-              <div class="config-row bad">
-                <span class="rank">16</span>
-                <span class="params">ε=0.9 · γ=0.99 · lr=0.2</span>
-                <span class="reward">-612.50</span>
-                <span class="succ">25%</span>
-                <div class="mini-bar"><div style="width: 26%"></div></div>
-              </div>
-              <div class="config-row bad">
-                <span class="rank">15</span>
-                <span class="params">ε=0.7 · γ=0.99 · lr=0.2</span>
-                <span class="reward">-633.52</span>
-                <span class="succ">24%</span>
-                <div class="mini-bar"><div style="width: 23%"></div></div>
-              </div>
-              <div class="config-row bad">
-                <span class="rank">14</span>
                 <span class="params">ε=0.8 · γ=0.99 · lr=0.2</span>
-                <span class="reward">-825.72</span>
+                <span class="reward">-696.34</span>
                 <span class="succ">18%</span>
                 <div class="mini-bar"><div style="width: 2%"></div></div>
               </div>
+              <div class="config-row bad">
+                <span class="rank">17</span>
+                <span class="params">ε=0.7 · γ=0.99 · lr=0.2</span>
+                <span class="reward">-538.35</span>
+                <span class="succ">27%</span>
+                <div class="mini-bar"><div style="width: 14%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">16</span>
+                <span class="params">ε=0.8 · γ=0.99 · lr=0.1</span>
+                <span class="reward">-493.17</span>
+                <span class="succ">31%</span>
+                <div class="mini-bar"><div style="width: 20%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">15</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.2</span>
+                <span class="reward">-455.09</span>
+                <span class="succ">24%</span>
+                <div class="mini-bar"><div style="width: 26%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">14</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.1</span>
+                <span class="reward">-352.01</span>
+                <span class="succ">39%</span>
+                <div class="mini-bar"><div style="width: 35%"></div></div>
+              </div>
             </div>
             <div class="agent-summary" style="margin-top: 8px;">
-              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>lr ∈ {0.1 ; 0.2} avec γ=0.99 — rewards qui s'effondrent (< -260)</strong></div>
+              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>dès que lr dépasse 0.05, Monte Carlo s'effondre ; γ=0.99 amplifie encore l'instabilité</strong></div>
             </div>
           </div>
         </div>
         <div class="callout">
-          <strong class="kw">Lecture :</strong> Monte Carlo met à jour la Q-table avec le retour total de l'épisode, qui est très bruité. Au-delà de lr=0.05 les estimations oscillent violemment et l'agent ne converge plus. C'est l'algo le plus sensible au lr.
+          <strong class="kw">Lecture :</strong> Monte Carlo confirme son profil : <strong>très bon</strong> si on le règle finement, mais <strong>très fragile</strong> dès que le learning rate augmente. C'est l'algorithme le plus sensible de toute l'étude.
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-7"></div>
-        <span>7 / 15</span>
+        <div class="progress" id="prog-8"></div>
+        <span>8 / 20</span>
       </div>
       </div>
 
@@ -1075,10 +1075,10 @@
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 8 · Deep Q-Learning</div>
+          <div class="slide-kicker">Slide 9 · Deep Q-Learning</div>
           <h2>Deep Q-Learning : top 5 et bottom 5 du benchmark</h2>
         </div>
-        <div class="slide-number">12 configurations testées · 2 000 ép. par config</div>
+        <div class="slide-number">12 configurations testées · budget 2 000 ép. · coût 40–61 s par config</div>
       </div>
       <div class="slide-body">
         <div class="two-col-fill">
@@ -1087,42 +1087,42 @@
             <div>
               <div class="config-row good">
                 <span class="rank">1</span>
-                <span class="params">ε=0.9 · γ=0.99 · lr=0.0005</span>
-                <span class="reward">8.33</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.005</span>
+                <span class="reward">8.29</span>
                 <span class="succ">100%</span>
                 <div class="mini-bar"><div style="width: 100%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">2</span>
-                <span class="params">ε=0.9 · γ=0.99 · lr=0.001</span>
-                <span class="reward">8.02</span>
+                <span class="params">ε=0.8 · γ=0.99 · lr=0.0005</span>
+                <span class="reward">8.04</span>
                 <span class="succ">100%</span>
-                <div class="mini-bar"><div style="width: 98%"></div></div>
+                <div class="mini-bar"><div style="width: 97%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">3</span>
-                <span class="params">ε=0.9 · γ=0.95 · lr=0.0005</span>
-                <span class="reward">7.94</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.001</span>
+                <span class="reward">7.97</span>
                 <span class="succ">100%</span>
                 <div class="mini-bar"><div style="width: 97%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">4</span>
-                <span class="params">ε=0.8 · γ=0.99 · lr=0.0005</span>
-                <span class="reward">7.93</span>
+                <span class="params">ε=0.8 · γ=0.95 · lr=0.0005</span>
+                <span class="reward">7.77</span>
                 <span class="succ">100%</span>
-                <div class="mini-bar"><div style="width: 97%"></div></div>
+                <div class="mini-bar"><div style="width: 94%"></div></div>
               </div>
               <div class="config-row good">
                 <span class="rank">5</span>
-                <span class="params">ε=0.8 · γ=0.95 · lr=0.0005</span>
-                <span class="reward">7.92</span>
+                <span class="params">ε=0.8 · γ=0.99 · lr=0.001</span>
+                <span class="reward">7.50</span>
                 <span class="succ">100%</span>
-                <div class="mini-bar"><div style="width: 97%"></div></div>
+                <div class="mini-bar"><div style="width: 90%"></div></div>
               </div>
             </div>
             <div class="agent-summary" style="margin-top: 8px;">
-              <div class="stat"><span>Point commun</span><strong>lr ∈ [0.0005 ; 0.001] avec γ=0.99 — réseau qui converge proprement</strong></div>
+              <div class="stat"><span>Point commun</span><strong>γ=0.99 domine ; le réseau peut très bien marcher, mais avec un coût massif</strong></div>
             </div>
           </div>
           <div class="card bad">
@@ -1131,51 +1131,51 @@
               <div class="config-row bad">
                 <span class="rank">12</span>
                 <span class="params">ε=0.8 · γ=0.99 · lr=0.005</span>
-                <span class="reward">6.10</span>
-                <span class="succ">99%</span>
-                <div class="mini-bar"><div style="width: 85%"></div></div>
+                <span class="reward">-0.46</span>
+                <span class="succ">96%</span>
+                <div class="mini-bar"><div style="width: 36%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">11</span>
                 <span class="params">ε=0.9 · γ=0.95 · lr=0.001</span>
-                <span class="reward">6.02</span>
-                <span class="succ">99%</span>
-                <div class="mini-bar"><div style="width: 84%"></div></div>
+                <span class="reward">3.68</span>
+                <span class="succ">98%</span>
+                <div class="mini-bar"><div style="width: 44%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">10</span>
-                <span class="params">ε=0.8 · γ=0.95 · lr=0.005</span>
-                <span class="reward">5.96</span>
-                <span class="succ">99%</span>
-                <div class="mini-bar"><div style="width: 84%"></div></div>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.0005</span>
+                <span class="reward">4.06</span>
+                <span class="succ">98%</span>
+                <div class="mini-bar"><div style="width: 49%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">9</span>
-                <span class="params">ε=0.8 · γ=0.95 · lr=0.001</span>
-                <span class="reward">5.78</span>
+                <span class="params">ε=0.9 · γ=0.95 · lr=0.005</span>
+                <span class="reward">5.38</span>
                 <span class="succ">99%</span>
-                <div class="mini-bar"><div style="width: 83%"></div></div>
+                <div class="mini-bar"><div style="width: 65%"></div></div>
               </div>
               <div class="config-row bad">
                 <span class="rank">8</span>
-                <span class="params">ε=0.9 · γ=0.95 · lr=0.005</span>
-                <span class="reward">-6.32</span>
-                <span class="succ">93%</span>
+                <span class="params">ε=0.8 · γ=0.95 · lr=0.005</span>
+                <span class="reward">-8.50</span>
+                <span class="succ">92%</span>
                 <div class="mini-bar"><div style="width: 2%"></div></div>
               </div>
             </div>
             <div class="agent-summary" style="margin-top: 8px;">
-              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>lr=0.005 (3 / 5 cas) — réseau qui diverge ou stagne</strong></div>
+              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>lr=0.005 est le plus risqué : il produit à la fois le meilleur et le pire run</strong></div>
             </div>
           </div>
         </div>
         <div class="callout">
-          <strong class="kw">Lecture :</strong> Avec un réseau de neurones, lr=0.005 est trop agressif : les poids oscillent, la Q-function ne converge pas. lr=0.0005 conservateur donne les meilleurs résultats — mais au prix de ~80s par config (vs <1s pour Q-Learning tabulaire).
+          <strong class="kw">Lecture :</strong> Le DQN est <strong>performant</strong>, mais beaucoup moins prévisible qu'avant : <strong>lr=0.005</strong> peut donner le meilleur score, mais aussi un échec net. Et surtout, chaque config coûte <strong>40 à 60 secondes</strong>, contre moins de 2 secondes pour Q-Learning.
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-8"></div>
-        <span>8 / 15</span>
+        <div class="progress" id="prog-9"></div>
+        <span>9 / 20</span>
       </div>
       </div>
 
@@ -1186,7 +1186,7 @@
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 9 · Synthèse benchmark</div>
+          <div class="slide-kicker">Slide 10 · Synthèse benchmark</div>
           <h2>Meilleure configuration retenue par agent</h2>
         </div>
         <div class="slide-number">Étape 1 terminée</div>
@@ -1206,35 +1206,35 @@
           <tbody>
             <tr>
               <td><strong>Q-Learning</strong></td>
-              <td>ε=0.9 · γ=0.95 · lr=0.7 · 10k ép.</td>
-              <td><strong class="success">8.71</strong></td>
+              <td>ε=0.9 · γ=0.99 · lr=0.7 · 10k ép.</td>
+              <td><strong class="success">8.51</strong></td>
               <td>100%</td>
-              <td>15.98s</td>
+              <td>1.38s</td>
               <td>Le meilleur reward, très stable.</td>
             </tr>
             <tr>
               <td><strong>Deep Q-Learning</strong></td>
-              <td>ε=0.9 · γ=0.99 · lr=0.0005 · 2k ép.</td>
-              <td>8.33</td>
+              <td>ε=0.9 · γ=0.99 · lr=0.005 · 2k ép.</td>
+              <td>8.29</td>
               <td>100%</td>
-              <td><span class="warning">96.28s</span></td>
-              <td>Très bon, mais 6× plus coûteux.</td>
+              <td><span class="warning">50.83s</span></td>
+              <td>Très bon, mais très coûteux et plus risqué.</td>
             </tr>
             <tr>
               <td><strong>SARSA</strong></td>
-              <td>ε=0.7 · γ=0.99 · lr=0.2 · 50k ép.</td>
-              <td>7.92</td>
-              <td>100%</td>
-              <td>3.85s</td>
-              <td>Compétitif et rapide (on-policy).</td>
+              <td>ε=0.5 · γ=0.99 · lr=0.2 · 50k ép.</td>
+              <td>0.03</td>
+              <td>96%</td>
+              <td>2.02s</td>
+              <td>Fiable, mais peu efficace en reward.</td>
             </tr>
             <tr>
               <td><strong>Monte Carlo</strong></td>
-              <td>ε=0.7 · γ=0.99 · lr=0.05 · 50k ép.</td>
-              <td>3.62</td>
-              <td>98%</td>
-              <td>3.23s</td>
-              <td>Très sensible au learning rate.</td>
+              <td>ε=0.7 · γ=0.95 · lr=0.05 · 100k ép.</td>
+              <td>5.83</td>
+              <td>99%</td>
+              <td>4.82s</td>
+              <td>Très sensible au learning rate, mais solide si bien réglé.</td>
             </tr>
           </tbody>
         </table>
@@ -1245,38 +1245,38 @@
               <div class="bar-row">
                 <span>Q-Learning</span>
                 <div class="bar-track"><div class="bar-fill good" style="width: 100%"></div></div>
-                <strong>8.71</strong>
+                <strong>8.51</strong>
               </div>
               <div class="bar-row">
                 <span>Deep Q-Learning</span>
-                <div class="bar-track"><div class="bar-fill" style="width: 95.6%"></div></div>
-                <strong>8.33</strong>
+                <div class="bar-track"><div class="bar-fill" style="width: 97.4%"></div></div>
+                <strong>8.29</strong>
               </div>
               <div class="bar-row">
                 <span>SARSA</span>
-                <div class="bar-track"><div class="bar-fill" style="width: 90.9%"></div></div>
-                <strong>7.92</strong>
+                <div class="bar-track"><div class="bar-fill" style="width: 0.4%"></div></div>
+                <strong>0.03</strong>
               </div>
               <div class="bar-row">
                 <span>Monte Carlo</span>
-                <div class="bar-track"><div class="bar-fill" style="width: 41.6%"></div></div>
-                <strong>3.62</strong>
+                <div class="bar-track"><div class="bar-fill" style="width: 68.5%"></div></div>
+                <strong>5.83</strong>
               </div>
             </div>
           </div>
           <div class="card">
             <h3>À retenir</h3>
             <ul>
-              <li><strong>Q-Learning</strong> est déjà le candidat le plus fort à la sortie du benchmark.</li>
-              <li>Mais le benchmark seul ne suffit pas : il a tuné chaque agent avec sa propre grille et son propre nombre d'épisodes.</li>
-              <li>Pour les comparer <strong>équitablement</strong>, on passe à l'étape 2 : <strong>mode temps limité, environnement inconnu</strong>.</li>
+              <li><strong>Q-Learning</strong> reste devant au benchmark, avec le meilleur couple reward / coût.</li>
+              <li><strong>Deep Q-Learning</strong> est très proche en performance brute, mais beaucoup plus coûteux.</li>
+              <li>Pour la vraie comparaison finale, on passe à l'étape 2 : <strong>mode temps limité sur checkpoints, seed inconnu</strong>.</li>
             </ul>
           </div>
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-9"></div>
-        <span>9 / 15</span>
+        <div class="progress" id="prog-10"></div>
+        <span>10 / 20</span>
       </div>
       </div>
 
@@ -1287,7 +1287,7 @@
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 10 · Comparaison finale</div>
+          <div class="slide-kicker">Slide 11 · Comparaison finale</div>
           <h2>Mode temps limité : règles du jeu</h2>
         </div>
         <div class="slide-number">Étape 2</div>
@@ -1297,10 +1297,10 @@
           <div class="card">
             <h3>Ce qui est figé</h3>
             <ul>
-              <li>On recharge les <strong>meilleurs paramètres sauvegardés</strong> pour chaque agent.</li>
+              <li>On recharge les <strong>meilleurs paramètres sauvegardés</strong> et surtout les <strong>checkpoints entraînés</strong> issus du benchmark.</li>
               <li>Aucun tuning pendant cette étape.</li>
               <li>Le <strong>même seed inconnu</strong> est utilisé pour tous les agents au moment du test.</li>
-              <li>Les agents sont entraînés normalement, puis testés ensemble.</li>
+              <li>Pas de ré-entraînement depuis zéro si un checkpoint existe : on part directement de l'agent déjà appris.</li>
             </ul>
           </div>
           <div class="card">
@@ -1314,13 +1314,13 @@
           </div>
         </div>
         <div class="callout">
-          <strong class="kw">Idée :</strong> mettre tous les agents dans une situation d'évaluation commune,
-          avec un environnement non connu à l'avance. C'est la "vraie" comparaison entre agents.
+          <strong class="kw">Idée :</strong> comparer les <strong>meilleurs agents déjà appris</strong> dans une situation commune,
+          sur un <strong>seed inconnu</strong> et avec un budget de test identique. C'est la vraie comparaison finale.
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-10"></div>
-        <span>10 / 15</span>
+        <div class="progress" id="prog-11"></div>
+        <span>11 / 20</span>
       </div>
       </div>
 
@@ -1331,7 +1331,7 @@
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 11 · Résultat final</div>
+          <div class="slide-kicker">Slide 12 · Résultat final</div>
           <h2>Mode temps limité : conclusion comparative</h2>
         </div>
         <div class="slide-number">5s par agent · seed inconnu</div>
@@ -1345,29 +1345,29 @@
                 <tr><th>Agent</th><th>Reward</th><th>Succès</th><th>Épisodes testés</th></tr>
               </thead>
               <tbody>
-                <tr><td><strong>Q-Learning</strong></td><td><strong class="success">7.91</strong></td><td><strong>100.0%</strong></td><td>49 433</td></tr>
-                <tr><td>Deep Q-Learning</td><td>5.21</td><td>98.7%</td><td><span class="warning">8 120</span></td></tr>
-                <tr><td>SARSA</td><td>3.51</td><td>97.8%</td><td>39 082</td></tr>
-                <tr><td>Monte Carlo</td><td><span class="danger">-2.23</span></td><td>95.4%</td><td>31 164</td></tr>
+                <tr><td><strong>Q-Learning</strong></td><td><strong class="success">7.92</strong></td><td><strong>100.0%</strong></td><td><strong>56 521</strong></td></tr>
+                <tr><td>Monte Carlo</td><td>6.37</td><td>99.3%</td><td>51 614</td></tr>
+                <tr><td>SARSA</td><td>3.77</td><td>98.0%</td><td>46 850</td></tr>
+                <tr><td>Deep Q-Learning</td><td><span class="warning">4.55</span></td><td>98.4%</td><td><span class="warning">9 011</span></td></tr>
               </tbody>
             </table>
           </div>
           <div class="card">
             <h3>Conclusion de lecture</h3>
-            <p><strong>Q-Learning</strong> arrive en tête : 100% de succès et le meilleur reward (7.91). Il réussit presque toujours, tout en restant le plus efficace pour résoudre la tâche.</p>
-            <p><strong>Deep Q-Learning</strong> est solide en reward (5.21) mais son réseau de neurones limite l'inférence à 8 120 épisodes en 5s, soit 6× moins que Q-Learning. Bonne politique, mauvais débit.</p>
-            <p><strong>SARSA</strong> obtient un excellent taux de succès (97.8%) avec un reward un peu plus faible. Il trouve souvent la solution, mais avec une politique plus prudente (on-policy).</p>
-            <p><strong>Monte Carlo</strong> est le plus fragile : son reward devient négatif (-2.23) sur le seed inconnu. Sa politique généralise moins bien que celles apprises par TD.</p>
+            <p><strong>Q-Learning</strong> arrive en tête : 100% de succès, meilleur reward (7.92) et meilleur débit avec plus de 56 000 épisodes testés en 5 secondes.</p>
+            <p><strong>Monte Carlo</strong> est la vraie surprise de cette version checkpointée : il garde 99.3% de succès et un reward très élevé (6.37), juste derrière Q-Learning.</p>
+            <p><strong>SARSA</strong> reste fiable à 98.0%, mais sa politique est moins efficace : reward plus faible et moins d'épisodes testés.</p>
+            <p><strong>Deep Q-Learning</strong> garde une bonne politique, mais son inférence reste très coûteuse : seulement 9 011 épisodes en 5 secondes, très loin derrière les agents tabulaires.</p>
           </div>
         </div>
         <div class="callout">
-          <strong class="kw">Conclusion :</strong> le meilleur agent final est <span class="success">Q-Learning</span>,
-          qui combine le meilleur reward, le meilleur taux de succès et le plus grand nombre d'épisodes testables dans le cadre temps limité.
+          <strong class="kw">Conclusion :</strong> le meilleur agent final reste <span class="success">Q-Learning</span>,
+          mais le protocole checkpointé montre aussi que <strong>Monte Carlo généralise bien mieux que prévu</strong> une fois qu'on repart de son meilleur entraînement sauvegardé.
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-11"></div>
-        <span>11 / 15</span>
+        <div class="progress" id="prog-12"></div>
+        <span>12 / 20</span>
       </div>
       </div>
 
@@ -1378,7 +1378,7 @@
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 12 · Epsilon</div>
+          <div class="slide-kicker">Slide 13 · Epsilon</div>
           <h2>Epsilon (ε) : explorer ou exploiter ?</h2>
         </div>
         <div class="slide-number">Hyperparamètre Q-Learning</div>
@@ -1402,12 +1402,12 @@
           </div>
         </div>
         <div class="callout">
-          <strong class="kw">Dans nos résultats :</strong> un ε élevé (0.9) a bien fonctionné pour Q-Learning. Cela suggère qu'au début, explorer largement aide à découvrir les bonnes trajectoires dans Taxi-v3.
+          <strong class="kw">Dans nos résultats :</strong> un ε élevé (0.9) a bien fonctionné pour Q-Learning. Cela suggère qu'au début, explorer largement aide à découvrir les bonnes trajectoires dans Taxi-v4.
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-12"></div>
-        <span>12 / 15</span>
+        <div class="progress" id="prog-13"></div>
+        <span>13 / 20</span>
       </div>
       </div>
 
@@ -1418,7 +1418,7 @@
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 13 · Gamma</div>
+          <div class="slide-kicker">Slide 14 · Gamma</div>
           <h2>Gamma (γ) : court terme ou long terme ?</h2>
         </div>
         <div class="slide-number">Hyperparamètre Q-Learning</div>
@@ -1442,12 +1442,12 @@
           </div>
         </div>
         <div class="callout">
-          <strong class="kw">Dans nos résultats :</strong> sur Taxi-v3, la grosse récompense (+20) arrive à la fin quand le passager est déposé. C'est pourquoi <strong>γ = 0.99</strong> est presque toujours retenu pour Q-Learning et SARSA.
+          <strong class="kw">Dans nos résultats :</strong> sur Taxi-v4, la grosse récompense (+20) arrive à la fin quand le passager est déposé. C'est pourquoi <strong>γ = 0.99</strong> reste très souvent retenu, même si Monte Carlo a mieux marché ici avec <strong>γ = 0.95</strong>.
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-13"></div>
-        <span>13 / 15</span>
+        <div class="progress" id="prog-14"></div>
+        <span>14 / 20</span>
       </div>
       </div>
 
@@ -1458,7 +1458,7 @@
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 14 · Learning rate</div>
+          <div class="slide-kicker">Slide 15 · Learning rate</div>
           <h2>Learning rate (α) : à quelle vitesse apprendre ?</h2>
         </div>
         <div class="slide-number">Hyperparamètre Q-Learning</div>
@@ -1482,23 +1482,195 @@
           </div>
         </div>
         <div class="callout">
-          <strong class="kw">Dans nos résultats :</strong> Q-Learning supporte un α élevé (0.7), Monte Carlo exige α=0.05, DQN se stabilise autour de α=0.0005. Chaque algo a sa propre tolérance.
+          <strong class="kw">Dans nos résultats :</strong> Q-Learning supporte bien un α élevé (0.7), Monte Carlo exige α=0.05, et le DQN accepte de <strong>0.0005 à 0.005</strong> mais avec une variabilité beaucoup plus forte. Chaque algo a sa propre tolérance.
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-14"></div>
-        <span>14 / 15</span>
+        <div class="progress" id="prog-15"></div>
+        <span>15 / 20</span>
       </div>
       </div>
 
     </section>
 
     <!-- ========== SLIDE 15 ========== -->
+    <section class="slide" id="slide-15-q-formula">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 16 · Formule Q-Learning</div>
+          <h2>Q-Learning : mise à jour par meilleur futur</h2>
+        </div>
+        <div class="slide-number">Off-policy</div>
+      </div>
+      <div class="slide-body">
+        <div class="card">
+          <h3>Formule</h3>
+          <div class="callout" style="font-size: 1.15rem; text-align: center;">
+            <strong>Q(s, a) ← Q(s, a) + α [ r + γ max Q(s', a') - Q(s, a) ]</strong>
+          </div>
+        </div>
+        <div class="two-col-fill">
+          <div class="card">
+            <h3>Ce que cela veut dire</h3>
+            <ul>
+              <li>L'agent met à jour la case <code>Q(s,a)</code> après chaque transition.</li>
+              <li>Il regarde la <strong>meilleure action possible</strong> dans l'état suivant <code>s'</code>.</li>
+              <li>La cible est donc optimiste : récompense immédiate <code>r</code> + meilleur futur estimé.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Conséquence</h3>
+            <p>Q-Learning apprend une politique qui vise directement le meilleur comportement possible, même si l'action réellement prise au pas suivant n'est pas cette meilleure action.</p>
+            <p>C'est ce caractère <strong>off-policy</strong> qui le rend souvent plus agressif et plus performant sur Taxi-v4.</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <div class="progress" id="prog-16"></div>
+        <span>16 / 20</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 16 ========== -->
+    <section class="slide" id="slide-16-sarsa-formula">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 17 · Formule SARSA</div>
+          <h2>SARSA : mise à jour par action réellement choisie</h2>
+        </div>
+        <div class="slide-number">On-policy</div>
+      </div>
+      <div class="slide-body">
+        <div class="card">
+          <h3>Formule</h3>
+          <div class="callout" style="font-size: 1.15rem; text-align: center;">
+            <strong>Q(s, a) ← Q(s, a) + α [ r + γ Q(s', a') - Q(s, a) ]</strong>
+          </div>
+        </div>
+        <div class="two-col-fill">
+          <div class="card">
+            <h3>Ce que cela veut dire</h3>
+            <ul>
+              <li>L'agent met aussi à jour la Q-table à chaque pas.</li>
+              <li>Mais ici <code>a'</code> est l'<strong>action réellement sélectionnée</strong> dans l'état suivant.</li>
+              <li>La mise à jour dépend donc de la politique suivie, y compris de son exploration.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Conséquence</h3>
+            <p>SARSA apprend une politique plus prudente, car il tient compte du fait qu'en pratique l'agent n'exécute pas toujours l'action optimale.</p>
+            <p>Sur Taxi-v4, cela le rend souvent plus stable, mais un peu moins performant en reward moyen que Q-Learning.</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <div class="progress" id="prog-17"></div>
+        <span>17 / 20</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 17 ========== -->
+    <section class="slide" id="slide-17-mc-formula">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 18 · Formule Monte Carlo</div>
+          <h2>Monte Carlo : mise à jour en fin d'épisode</h2>
+        </div>
+        <div class="slide-number">Retour complet</div>
+      </div>
+      <div class="slide-body">
+        <div class="card">
+          <h3>Formules</h3>
+          <div class="callout" style="font-size: 1.05rem; text-align: center;">
+            <strong>G = r_t + γr_(t+1) + γ²r_(t+2) + ...</strong><br>
+            <strong>Q(s, a) ← Q(s, a) + α [ G - Q(s, a) ]</strong>
+          </div>
+        </div>
+        <div class="two-col-fill">
+          <div class="card">
+            <h3>Ce que cela veut dire</h3>
+            <ul>
+              <li>Monte Carlo n'actualise pas la table à chaque pas.</li>
+              <li>Il attend la fin complète de l'épisode.</li>
+              <li>Puis il calcule le <strong>retour total</strong> <code>G</code> et corrige les couples état-action rencontrés.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Conséquence</h3>
+            <p>L'information est plus riche, car elle contient tout l'épisode, mais aussi plus bruitée.</p>
+            <p>Cela explique pourquoi Monte Carlo est très sensible au <code>learning rate</code>, tout en pouvant très bien marcher une fois le bon réglage trouvé.</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <div class="progress" id="prog-18"></div>
+        <span>18 / 20</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 18 ========== -->
+    <section class="slide" id="slide-18-dqn-formula">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 19 · Formule Deep Q-Learning</div>
+          <h2>Deep Q-Learning : mise à jour des poids du réseau</h2>
+        </div>
+        <div class="slide-number">Approximation de Q(s,a)</div>
+      </div>
+      <div class="slide-body">
+        <div class="card">
+          <h3>Idée centrale</h3>
+          <div class="callout" style="font-size: 1.05rem; text-align: center;">
+            <strong>cible = r + γ max Q_target(s', a')</strong><br>
+            <strong>perte = (Q_policy(s, a) - cible)²</strong>
+          </div>
+        </div>
+        <div class="two-col-fill">
+          <div class="card">
+            <h3>Comment le réseau apprend</h3>
+            <ul>
+              <li><code>policy_net</code> prédit les Q-values pour l'état courant.</li>
+              <li>On extrait la valeur correspondant à l'action jouée <code>a</code>.</li>
+              <li><code>target_net</code> calcule une cible plus stable sur l'état suivant <code>s'</code>.</li>
+              <li>La perte MSE mesure l'écart entre prédiction et cible.</li>
+              <li>L'optimizer Adam ajuste ensuite les <strong>poids</strong> du réseau par descente de gradient.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Ce qui stabilise l'apprentissage</h3>
+            <ul>
+              <li>Le <strong>replay buffer</strong> rejoue des expériences passées au lieu d'apprendre sur une seule transition.</li>
+              <li>Le <strong>target network</strong> est mis à jour périodiquement, pas à chaque pas.</li>
+              <li>On n'actualise donc plus une table, mais une fonction approchée par réseau de neurones.</li>
+            </ul>
+            <p>Le DQN est plus puissant sur de grands espaces d'états, mais beaucoup plus coûteux à entraîner et à exécuter.</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <div class="progress" id="prog-19"></div>
+        <span>19 / 20</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 19 ========== -->
     <section class="slide" id="slide-15">
       <div class="slide-card">
       <div class="slide-header">
         <div>
-          <div class="slide-kicker">Slide 15 · Conclusion</div>
+          <div class="slide-kicker">Slide 20 · Conclusion</div>
           <h2>Conclusion</h2>
         </div>
         <div class="slide-number">Ce qu'on retient</div>
@@ -1507,9 +1679,10 @@
         <div class="two-col-fill">
           <div class="card">
             <h3>Ce que montrent nos résultats</h3>
-            <p><strong>Q-Learning</strong> est le meilleur compromis entre performance, robustesse et coût de calcul sur Taxi-v3.</p>
-            <p><strong>Deep Q-Learning</strong> fonctionne bien (reward 8.33), mais son coût d'entraînement est 6× plus élevé pour un gain inférieur — et il termine 6× moins d'épisodes en mode temps limité.</p>
-            <p><strong>SARSA et Monte Carlo</strong> restent compétitifs en benchmark, mais Monte Carlo généralise mal sur un seed inconnu.</p>
+            <p><strong>Q-Learning</strong> reste le meilleur compromis entre performance, robustesse et coût de calcul sur Taxi-v4.</p>
+            <p><strong>Deep Q-Learning</strong> peut atteindre presque le même niveau de reward au benchmark, mais son coût d'entraînement reste énorme et son débit en temps limité est très faible.</p>
+            <p><strong>Monte Carlo</strong> ressort mieux que prévu dans le protocole checkpointé : il est très sensible au réglage, mais il généralise bien une fois son meilleur entraînement sauvegardé.</p>
+            <p><strong>SARSA</strong> reste fiable, mais moins efficace en reward moyen que Q-Learning.</p>
             <p>Un algorithme plus complexe n'est donc pas forcément meilleur si le problème reste simple.</p>
           </div>
           <div class="card">
@@ -1523,13 +1696,13 @@
           </div>
         </div>
         <div class="callout">
-          <strong class="kw">Message final :</strong> sur Taxi-v3, le meilleur algorithme n'est pas le plus sophistiqué,
+          <strong class="kw">Message final :</strong> sur Taxi-v4, le meilleur algorithme n'est pas le plus sophistiqué,
           mais le plus <strong>adapté</strong> au problème.
         </div>
       </div>
       <div class="footer-bar">
-        <div class="progress" id="prog-15"></div>
-        <span>15 / 15</span>
+        <div class="progress" id="prog-20"></div>
+        <span>20 / 20</span>
       </div>
       </div>
 

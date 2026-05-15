@@ -2,10 +2,13 @@ from statistics import mean
 import gymnasium as gym
 import numpy as np
 import time
+import pickle
+
+ENV_ID = "Taxi-v4"
 
 class BaseAgent:
     def __init__(self):
-        self.env = gym.make("Taxi-v3")
+        self.env = gym.make(ENV_ID)
         self.last_test_stats = None
 
     def choose_action(self, state):
@@ -92,7 +95,7 @@ class BaseAgent:
         return self.last_test_stats
 
     def display_episode(self, episode):
-        env = gym.make("Taxi-v3", render_mode="ansi")
+        env = gym.make(ENV_ID, render_mode="ansi")
         self.epsilon = 0
         for i in range(episode):
             print(f"--- {self.__class__.__name__} - Épisode {i+1}/{episode} ---")
@@ -104,3 +107,18 @@ class BaseAgent:
                 done = terminated or truncated
                 print(env.render())
                 time.sleep(0.1)
+
+    def get_checkpoint_state(self):
+        raise NotImplementedError
+
+    def load_checkpoint_state(self, state):
+        raise NotImplementedError
+
+    def save_checkpoint(self, path):
+        with open(path, "wb") as f:
+            pickle.dump(self.get_checkpoint_state(), f)
+
+    def load_checkpoint(self, path):
+        with open(path, "rb") as f:
+            state = pickle.load(f)
+        self.load_checkpoint_state(state)
