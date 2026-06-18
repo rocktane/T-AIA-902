@@ -70,3 +70,17 @@ class MonteCarlo(BaseAgent):
             "success_history": success_history,
             "early_stopped_at": es.triggered_at if es else None,
         }
+
+    def get_checkpoint_state(self):
+        return {
+            "q_table": self.q_table.copy(),
+            "epsilon": self.epsilon,
+            "gamma": self.gamma,
+            "lr": self.lr,
+        }
+
+    def load_checkpoint_state(self, state):
+        self.q_table = np.array(state["q_table"], copy=True)
+        self.epsilon = float(state["epsilon"])
+        self.gamma = float(state["gamma"])
+        self.lr = float(state["lr"])

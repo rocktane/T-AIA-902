@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Follow-up RL Taxi-v3 — v2</title>
+  <style>
+    :root {
+      --bg: #eceff3;
+      --paper: #ffffff;
+      --ink: #18212b;
+      --muted: #5f6b76;
+      --accent: #244a9b;
+      --accent-2: #6b8de0;
+      --accent-soft: #f3f6fc;
+      --line: #d9dee5;
+      --good: #275d47;
+      --good-soft: #e6f1ec;
+      --warn: #7c5a18;
+      --bad: #8e2f2f;
+      --bad-soft: #f6e4e4;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .deck {
+      height: 100vh;
+      width: 100vw;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      padding: 24px;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .slide-card {
+      width: 100%;
+      height: 100%;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+      padding: 36px 44px 24px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 28px;
+      overflow: hidden;
+    }
+
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+    }
+
+    .slide-kicker {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .slide-number {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.08;
+    }
+
+    h1 {
+      font-size: clamp(38px, 5.4vw, 68px);
+      max-width: 100%;
+    }
+
+    h2 {
+      font-size: clamp(28px, 3.2vw, 42px);
+      max-width: 32ch;
+    }
+
+    h3 {
+      font-size: clamp(16px, 1.4vw, 20px);
+      margin-bottom: 8px;
+    }
+
+    p, li, td, th {
+      font-size: clamp(14px, 1.15vw, 18px);
+      line-height: 1.4;
+    }
+
+    p { margin: 0 0 8px; }
+
+    ul { margin: 0; padding-left: 20px; }
+    li + li { margin-top: 6px; }
+
+    .lead {
+      font-size: clamp(18px, 1.6vw, 24px);
+      color: var(--muted);
+      max-width: 75ch;
+    }
+
+    .slide-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 20px;
+      min-height: 0;
+      padding-top: 4px;
+    }
+
+    .grid-2, .grid-3, .grid-4 {
+      display: grid;
+      gap: 16px;
+    }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 0;
+    }
+
+    .card.good { border-left: 4px solid var(--good); }
+    .card.bad  { border-left: 4px solid var(--bad); }
+
+    .metric {
+      font-size: clamp(22px, 2.4vw, 32px);
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .small { font-size: 13px; color: var(--muted); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--line);
+      font-size: clamp(12px, 1vw, 15px);
+    }
+    th {
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      background: #f7f8fb;
+      font-size: 11px;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 7px;
+      border-radius: 4px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      margin-right: 4px;
+    }
+
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      padding: 12px 14px;
+      background: #fbfcfe;
+      border-radius: 6px;
+      font-size: clamp(14px, 1.15vw, 17px);
+      line-height: 1.4;
+    }
+
+    .success { color: var(--good); font-weight: 700; }
+    .warning { color: var(--warn); font-weight: 700; }
+    .danger  { color: var(--bad);  font-weight: 700; }
+
+    .bars { display: grid; gap: 8px; }
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(140px, 1fr) 2fr 70px;
+      gap: 10px;
+      align-items: center;
+      font-size: 13px;
+    }
+    .bar-track {
+      position: relative;
+      height: 14px;
+      background: #edf0f2;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+    .bar-fill.good { background: var(--good); }
+    .bar-fill.bad  { background: var(--bad); }
+
+    .footer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 11px;
+      padding-top: 6px;
+      border-top: 1px solid var(--line);
+    }
+
+    .progress {
+      display: flex;
+      gap: 3px;
+      flex: 1;
+      margin: 0 16px;
+    }
+    .progress span {
+      flex: 1;
+      height: 3px;
+      background: #e3e7ec;
+      border-radius: 2px;
+    }
+    .progress span.active { background: var(--accent); }
+
+    .nav-hint {
+      position: fixed;
+      bottom: 14px;
+      right: 18px;
+      background: rgba(24,33,43,0.85);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: ui-monospace, monospace;
+      z-index: 100;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .two-col-fill {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .three-col-fill {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .config-row {
+      display: grid;
+      grid-template-columns: 22px 1fr 60px 50px 70px;
+      gap: 8px;
+      align-items: center;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 12px;
+      padding: 5px 6px;
+      border-bottom: 1px solid var(--line);
+    }
+    .config-row:last-child { border-bottom: none; }
+    .config-row .rank {
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+    }
+    .config-row .params { color: var(--ink); }
+    .config-row .reward { font-weight: 700; text-align: right; }
+    .config-row .succ { color: var(--muted); text-align: right; font-size: 11px; }
+    .config-row .mini-bar {
+      height: 8px;
+      background: #edf0f2;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .config-row .mini-bar > div {
+      height: 100%;
+      background: var(--accent);
+    }
+    .config-row.good .mini-bar > div { background: var(--good); }
+    .config-row.bad  .mini-bar > div { background: var(--bad); }
+
+    .agent-summary {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .agent-summary .stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 8px;
+      background: var(--accent-soft);
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .agent-summary .stat strong { color: var(--accent); }
+
+    .lib-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      min-height: 0;
+    }
+    .lib-card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .lib-card .lib-name {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: clamp(15px, 1.4vw, 20px);
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .lib-card .lib-role {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .lib-card p { font-size: 13px; margin: 0; }
+
+    .param-block {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+    .param-block .greek {
+      font-size: clamp(28px, 2.8vw, 38px);
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .param-block .pname {
+      font-size: 14px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+    }
+    .param-block h3 { margin: 0; font-size: clamp(15px, 1.3vw, 18px); }
+    .param-block p { font-size: clamp(12px, 1vw, 14px); margin: 0; }
+    .param-block .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .param-block .mini {
+      background: var(--accent-soft);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+    .param-block .mini strong { color: var(--accent); }
+    .param-block .observed {
+      margin-top: auto;
+      padding: 6px 8px;
+      background: var(--good-soft);
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--good);
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+      .slide {
+        padding: 18px 16px;
+        height: auto;
+        min-height: 100vh;
+      }
+      .grid-2, .grid-3, .grid-4,
+      .two-col-fill, .three-col-fill,
+      .lib-grid {
+        grid-template-columns: 1fr;
+      }
+      .config-row {
+        grid-template-columns: 22px 1fr 60px;
+      }
+      .config-row .mini-bar, .config-row .succ { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-hint">← → ↑ ↓ pour naviguer</div>
+
+  <div class="deck" id="deck">
+
+    <!-- ========== SLIDE 1 ========== -->
+    <section class="slide" id="slide-1">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 1 · Introduction</div>
+        </div>
+        <div class="slide-number">Follow-up encadrant</div>
+      </div>
+      <div class="slide-body" style="justify-content: center;">
+        <h1>Benchmark et comparaison finale des agents RL sur Taxi-v3</h1>
+        <p class="lead">
+          Apprendre à un agent à récupérer puis déposer un passager dans
+          l'environnement <strong>Taxi-v3</strong>, et comparer plusieurs approches
+          d'apprentissage par renforcement.
+        </p>
+        <div class="grid-3" style="margin-top: 20px;">
+          <div class="card">
+            <div class="label">Environnement</div>
+            <p>500 états, 6 actions, récompense terminale positive, pénalité par étape.</p>
+          </div>
+          <div class="card">
+            <div class="label">Agents comparés</div>
+            <p>Q-Learning, SARSA, Monte Carlo et Deep Q-Learning.</p>
+          </div>
+          <div class="card">
+            <div class="label">Fil narratif</div>
+            <p>1. Optimiser chaque agent. 2. Les comparer dans un mode temps limité.</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Idée centrale : ne pas comparer "au feeling", mais avec un protocole commun.</span>
+        <div class="progress" id="prog-1"></div>
+        <span>1 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 2 ========== -->
+    <section class="slide" id="slide-2">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 2 · Protocole</div>
+          <h2>Protocole de benchmark : objectif</h2>
+        </div>
+        <div class="slide-number">Pourquoi benchmarker ?</div>
+      </div>
+      <div class="slide-body">
+        <div class="two-col-fill">
+          <div class="card">
+            <h3>Ce que fait le benchmark</h3>
+            <ul>
+              <li>Tester plusieurs configurations d'un même agent.</li>
+              <li>Mesurer leurs performances avec les mêmes règles.</li>
+              <li>Conserver la meilleure configuration trouvée pour chaque agent.</li>
+              <li>Sauvegarder les paramètres dans un fichier JSON pour les réutiliser plus tard.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Pourquoi c'est utile</h3>
+            <ul>
+              <li>Les hyperparamètres influencent fortement les résultats.</li>
+              <li>Deux algorithmes ne sont comparables que s'ils sont bien réglés.</li>
+              <li>Le benchmark prépare la comparaison finale en mode temps limité.</li>
+              <li>Chaque agent part avec sa meilleure version possible.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          Le benchmark ne cherche pas encore le meilleur modèle global :
+          il cherche d'abord la <strong>meilleure configuration pour chaque agent</strong>.
+          La comparaison entre agents arrive ensuite.
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Étape 1 de notre démarche.</span>
+        <div class="progress" id="prog-2"></div>
+        <span>2 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 3 - Grid search expliqué ========== -->
+    <section class="slide" id="slide-3">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 3 · Grid-search</div>
+          <h2>Comment on cherche les bons paramètres : le grid-search</h2>
+        </div>
+        <div class="slide-number">Recherche exhaustive</div>
+      </div>
+      <div class="slide-body">
+        <div class="two-col-fill">
+          <div class="card">
+            <h3>Le principe en 3 étapes</h3>
+            <ol style="padding-left: 20px; margin: 0;">
+              <li><strong>Choisir une grille de valeurs</strong> pour chaque hyperparamètre (ε, γ, lr).</li>
+              <li><strong>Tester toutes les combinaisons possibles</strong> (produit cartésien).</li>
+              <li><strong>Conserver la meilleure</strong> selon notre règle de qualité.</li>
+            </ol>
+            <div class="callout" style="margin-top: 12px;">
+              <strong>Exemple concret pour Q-Learning :</strong><br>
+              ε ∈ {0.7, 0.8, 0.9} × γ ∈ {0.95, 0.99} × lr ∈ {0.1, 0.3, 0.5, 0.7}<br>
+              → <strong>3 × 2 × 4 = 24 configurations entraînées et testées.</strong>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Pourquoi des grilles différentes par agent ?</h3>
+            <p>Chaque algorithme n'a pas la même <strong>sensibilité</strong> aux paramètres.</p>
+            <ul>
+              <li><strong>Deep Q-Learning</strong> a besoin de learning rates beaucoup plus petits (0.0005–0.005) car il met à jour un réseau de neurones, pas une table.</li>
+              <li><strong>Monte Carlo</strong> a besoin de plus d'épisodes pour stabiliser ses estimations (50 000).</li>
+              <li><strong>SARSA</strong> a demandé un second tour avec une grille plus fine, car le premier n'atteignait pas 95% de succès.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Grid-search = on ne devine pas les paramètres, on les essaie tous.</span>
+        <div class="progress" id="prog-3"></div>
+        <span>3 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 4 - Critère de succès ========== -->
+    <section class="slide" id="slide-4">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 4 · Critère</div>
+          <h2>Comment on décide du "meilleur"</h2>
+        </div>
+        <div class="slide-number">Règle de sélection</div>
+      </div>
+      <div class="slide-body">
+        <div class="three-col-fill">
+          <div class="card">
+            <div class="metric">1</div>
+            <div class="label">Filtre qualité</div>
+            <h3 style="margin-top: 8px;">Taux de succès ≥ 95%</h3>
+            <p>On élimine d'abord les configurations qui n'arrivent pas à terminer la mission de manière fiable.</p>
+          </div>
+          <div class="card">
+            <div class="metric">2</div>
+            <div class="label">Critère principal</div>
+            <h3 style="margin-top: 8px;">Reward moyen le plus élevé</h3>
+            <p>Parmi les agents fiables, on prend celui qui obtient en moyenne le meilleur score sur les épisodes de test.</p>
+          </div>
+          <div class="card">
+            <div class="metric">3</div>
+            <div class="label">Départage</div>
+            <h3 style="margin-top: 8px;">Temps d'entraînement le plus court</h3>
+            <p>Si deux rewards sont trop proches (différence ≤ tolérance), on choisit le plus rapide à entraîner.</p>
+          </div>
+        </div>
+        <div class="callout">
+          Pourquoi cet ordre ? Sur Taxi-v3, un agent peut <strong>réussir</strong> sans être <strong>efficace</strong>.
+          Le reward moyen distingue les politiques qui réussissent <strong>vite</strong> de celles qui réussissent
+          mais avec trop d'étapes ou trop de pénalités.
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Cette règle est implémentée dans <code>main.py</code> et <code>best_params.py</code>.</span>
+        <div class="progress" id="prog-4"></div>
+        <span>4 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 5 - Q-Learning top 5 / bottom 5 ========== -->
+    <section class="slide" id="slide-5">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 5 · Q-Learning</div>
+          <h2>Q-Learning : top 5 et bottom 5 du benchmark</h2>
+        </div>
+        <div class="slide-number">24 configurations testées</div>
+      </div>
+      <div class="slide-body">
+        <div class="two-col-fill">
+          <div class="card good">
+            <h3 style="color: var(--good);">Top 5 — meilleures configurations</h3>
+            <div>
+              <div class="config-row good">
+                <span class="rank">1</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.7</span>
+                <span class="reward">8.44</span>
+                <span class="succ">100%</span>
+                <div class="mini-bar"><div style="width: 100%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">2</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.5</span>
+                <span class="reward">8.39</span>
+                <span class="succ">100%</span>
+                <div class="mini-bar"><div style="width: 99%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">3</span>
+                <span class="params">ε=0.8 · γ=0.99 · lr=0.7</span>
+                <span class="reward">8.21</span>
+                <span class="succ">100%</span>
+                <div class="mini-bar"><div style="width: 97%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">4</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.3</span>
+                <span class="reward">7.95</span>
+                <span class="succ">100%</span>
+                <div class="mini-bar"><div style="width: 94%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">5</span>
+                <span class="params">ε=0.8 · γ=0.99 · lr=0.5</span>
+                <span class="reward">7.82</span>
+                <span class="succ">99%</span>
+                <div class="mini-bar"><div style="width: 92%"></div></div>
+              </div>
+            </div>
+            <div class="agent-summary" style="margin-top: 8px;">
+              <div class="stat"><span>Point commun</span><strong>γ=0.99 + lr ≥ 0.3</strong></div>
+            </div>
+          </div>
+          <div class="card bad">
+            <h3 style="color: var(--bad);">Bottom 5 — moins bonnes configurations</h3>
+            <div>
+              <div class="config-row bad">
+                <span class="rank">24</span>
+                <span class="params">ε=0.7 · γ=0.95 · lr=0.1</span>
+                <span class="reward">-12.3</span>
+                <span class="succ">65%</span>
+                <div class="mini-bar"><div style="width: 8%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">23</span>
+                <span class="params">ε=0.7 · γ=0.95 · lr=0.7</span>
+                <span class="reward">-8.5</span>
+                <span class="succ">72%</span>
+                <div class="mini-bar"><div style="width: 18%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">22</span>
+                <span class="params">ε=0.8 · γ=0.95 · lr=0.1</span>
+                <span class="reward">-4.2</span>
+                <span class="succ">78%</span>
+                <div class="mini-bar"><div style="width: 28%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">21</span>
+                <span class="params">ε=0.7 · γ=0.99 · lr=0.1</span>
+                <span class="reward">0.5</span>
+                <span class="succ">85%</span>
+                <div class="mini-bar"><div style="width: 40%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">20</span>
+                <span class="params">ε=0.9 · γ=0.95 · lr=0.1</span>
+                <span class="reward">1.8</span>
+                <span class="succ">88%</span>
+                <div class="mini-bar"><div style="width: 47%"></div></div>
+              </div>
+            </div>
+            <div class="agent-summary" style="margin-top: 8px;">
+              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>γ=0.95 ou lr=0.1</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>Lecture :</strong> γ=0.99 est <em>indispensable</em> sur Taxi-v3 (la grosse récompense est en fin d'épisode).
+          Un lr trop petit (0.1) ralentit fortement l'apprentissage : 10 000 épisodes ne suffisent pas pour stabiliser la Q-table.
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Reward de référence : Q-Learning meilleure config = 8.44 (sauvegardé dans best_params.json).</span>
+        <div class="progress" id="prog-5"></div>
+        <span>5 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 6 - SARSA top 5 / bottom 5 ========== -->
+    <section class="slide" id="slide-6">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 6 · SARSA</div>
+          <h2>SARSA : top 5 et bottom 5 du benchmark</h2>
+        </div>
+        <div class="slide-number">2 grilles successives, 36 configurations au total</div>
+      </div>
+      <div class="slide-body">
+        <div class="two-col-fill">
+          <div class="card good">
+            <h3 style="color: var(--good);">Top 5 — meilleures configurations</h3>
+            <div>
+              <div class="config-row good">
+                <span class="rank">1</span>
+                <span class="params">ε=0.5 · γ=0.99 · lr=0.2 · 50k ép.</span>
+                <span class="reward">3.54</span>
+                <span class="succ">98%</span>
+                <div class="mini-bar"><div style="width: 100%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">2</span>
+                <span class="params">ε=0.6 · γ=0.99 · lr=0.3 · 50k ép.</span>
+                <span class="reward">3.21</span>
+                <span class="succ">97%</span>
+                <div class="mini-bar"><div style="width: 91%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">3</span>
+                <span class="params">ε=0.7 · γ=0.99 · lr=0.2 · 50k ép.</span>
+                <span class="reward">2.85</span>
+                <span class="succ">96%</span>
+                <div class="mini-bar"><div style="width: 81%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">4</span>
+                <span class="params">ε=0.5 · γ=0.99 · lr=0.4 · 50k ép.</span>
+                <span class="reward">2.40</span>
+                <span class="succ">95%</span>
+                <div class="mini-bar"><div style="width: 68%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">5</span>
+                <span class="params">ε=0.7 · γ=0.99 · lr=0.3 · 20k ép.</span>
+                <span class="reward">1.95</span>
+                <span class="succ">95%</span>
+                <div class="mini-bar"><div style="width: 55%"></div></div>
+              </div>
+            </div>
+            <div class="agent-summary" style="margin-top: 8px;">
+              <div class="stat"><span>Point commun</span><strong>ε modéré + 50k épisodes</strong></div>
+            </div>
+          </div>
+          <div class="card bad">
+            <h3 style="color: var(--bad);">Bottom 5 — moins bonnes configurations</h3>
+            <div>
+              <div class="config-row bad">
+                <span class="rank">36</span>
+                <span class="params">ε=0.9 · γ=0.95 · lr=0.05 · 20k</span>
+                <span class="reward">-22.5</span>
+                <span class="succ">52%</span>
+                <div class="mini-bar"><div style="width: 5%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">35</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.05 · 20k</span>
+                <span class="reward">-15.8</span>
+                <span class="succ">68%</span>
+                <div class="mini-bar"><div style="width: 14%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">34</span>
+                <span class="params">ε=0.8 · γ=0.95 · lr=0.1 · 20k</span>
+                <span class="reward">-9.2</span>
+                <span class="succ">75%</span>
+                <div class="mini-bar"><div style="width: 23%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">33</span>
+                <span class="params">ε=0.9 · γ=0.95 · lr=0.2 · 20k</span>
+                <span class="reward">-4.7</span>
+                <span class="succ">82%</span>
+                <div class="mini-bar"><div style="width: 30%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">32</span>
+                <span class="params">ε=0.8 · γ=0.99 · lr=0.05 · 20k</span>
+                <span class="reward">-1.3</span>
+                <span class="succ">88%</span>
+                <div class="mini-bar"><div style="width: 38%"></div></div>
+              </div>
+            </div>
+            <div class="agent-summary" style="margin-top: 8px;">
+              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>ε élevé + 20k épisodes seulement</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>Lecture :</strong> SARSA est <em>on-policy</em>, il apprend la politique qu'il joue.
+          Avec un ε trop élevé (0.9), il continue de jouer "trop aléatoire" et apprend une politique sous-optimale.
+          C'est pourquoi la 2ᵉ grille (ε ∈ {0.5, 0.6, 0.7}) a permis d'atteindre les 95% de succès.
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Le 1er benchmark SARSA n'atteignait pas 95% : seconde grille plus fine nécessaire.</span>
+        <div class="progress" id="prog-6"></div>
+        <span>6 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 7 - Monte Carlo top 5 / bottom 5 ========== -->
+    <section class="slide" id="slide-7">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 7 · Monte Carlo</div>
+          <h2>Monte Carlo : top 5 et bottom 5 du benchmark</h2>
+        </div>
+        <div class="slide-number">18 configurations testées · 50k épisodes chacune</div>
+      </div>
+      <div class="slide-body">
+        <div class="two-col-fill">
+          <div class="card good">
+            <h3 style="color: var(--good);">Top 5 — meilleures configurations</h3>
+            <div>
+              <div class="config-row good">
+                <span class="rank">1</span>
+                <span class="params">ε=0.8 · γ=0.95 · lr=0.05</span>
+                <span class="reward">6.05</span>
+                <span class="succ">99%</span>
+                <div class="mini-bar"><div style="width: 100%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">2</span>
+                <span class="params">ε=0.7 · γ=0.99 · lr=0.05</span>
+                <span class="reward">5.84</span>
+                <span class="succ">98%</span>
+                <div class="mini-bar"><div style="width: 96%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">3</span>
+                <span class="params">ε=0.8 · γ=0.99 · lr=0.05</span>
+                <span class="reward">5.62</span>
+                <span class="succ">98%</span>
+                <div class="mini-bar"><div style="width: 92%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">4</span>
+                <span class="params">ε=0.7 · γ=0.95 · lr=0.05</span>
+                <span class="reward">5.18</span>
+                <span class="succ">97%</span>
+                <div class="mini-bar"><div style="width: 85%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">5</span>
+                <span class="params">ε=0.9 · γ=0.95 · lr=0.05</span>
+                <span class="reward">4.72</span>
+                <span class="succ">96%</span>
+                <div class="mini-bar"><div style="width: 78%"></div></div>
+              </div>
+            </div>
+            <div class="agent-summary" style="margin-top: 8px;">
+              <div class="stat"><span>Point commun</span><strong>lr=0.05 (très prudent)</strong></div>
+            </div>
+          </div>
+          <div class="card bad">
+            <h3 style="color: var(--bad);">Bottom 5 — moins bonnes configurations</h3>
+            <div>
+              <div class="config-row bad">
+                <span class="rank">18</span>
+                <span class="params">ε=0.9 · γ=0.95 · lr=0.2</span>
+                <span class="reward">-28.4</span>
+                <span class="succ">42%</span>
+                <div class="mini-bar"><div style="width: 4%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">17</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.2</span>
+                <span class="reward">-21.6</span>
+                <span class="succ">55%</span>
+                <div class="mini-bar"><div style="width: 12%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">16</span>
+                <span class="params">ε=0.8 · γ=0.95 · lr=0.2</span>
+                <span class="reward">-12.9</span>
+                <span class="succ">68%</span>
+                <div class="mini-bar"><div style="width: 22%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">15</span>
+                <span class="params">ε=0.7 · γ=0.95 · lr=0.2</span>
+                <span class="reward">-5.2</span>
+                <span class="succ">79%</span>
+                <div class="mini-bar"><div style="width: 32%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">14</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.1</span>
+                <span class="reward">-1.4</span>
+                <span class="succ">86%</span>
+                <div class="mini-bar"><div style="width: 42%"></div></div>
+              </div>
+            </div>
+            <div class="agent-summary" style="margin-top: 8px;">
+              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>lr ≥ 0.1 (instable)</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>Lecture :</strong> Monte Carlo met à jour la Q-table avec le <em>retour total de l'épisode</em>, qui est très bruité.
+          Un lr élevé fait sur-réagir l'agent à chaque épisode et empêche la convergence.
+          C'est l'agent le <strong>plus sensible au learning rate</strong>.
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Tous les top 5 ont lr=0.05 — la prudence paie pour Monte Carlo.</span>
+        <div class="progress" id="prog-7"></div>
+        <span>7 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 8 - Deep Q-Learning top 5 / bottom 5 ========== -->
+    <section class="slide" id="slide-8">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 8 · Deep Q-Learning</div>
+          <h2>Deep Q-Learning : top 5 et bottom 5 du benchmark</h2>
+        </div>
+        <div class="slide-number">12 configurations testées · 2k épisodes chacune</div>
+      </div>
+      <div class="slide-body">
+        <div class="two-col-fill">
+          <div class="card good">
+            <h3 style="color: var(--good);">Top 5 — meilleures configurations</h3>
+            <div>
+              <div class="config-row good">
+                <span class="rank">1</span>
+                <span class="params">ε=0.8 · γ=0.95 · lr=0.001</span>
+                <span class="reward">6.08</span>
+                <span class="succ">99%</span>
+                <div class="mini-bar"><div style="width: 100%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">2</span>
+                <span class="params">ε=0.9 · γ=0.95 · lr=0.0005</span>
+                <span class="reward">5.71</span>
+                <span class="succ">98%</span>
+                <div class="mini-bar"><div style="width: 94%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">3</span>
+                <span class="params">ε=0.9 · γ=0.95 · lr=0.001</span>
+                <span class="reward">5.42</span>
+                <span class="succ">97%</span>
+                <div class="mini-bar"><div style="width: 89%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">4</span>
+                <span class="params">ε=0.8 · γ=0.99 · lr=0.001</span>
+                <span class="reward">4.95</span>
+                <span class="succ">96%</span>
+                <div class="mini-bar"><div style="width: 81%"></div></div>
+              </div>
+              <div class="config-row good">
+                <span class="rank">5</span>
+                <span class="params">ε=0.8 · γ=0.95 · lr=0.0005</span>
+                <span class="reward">4.32</span>
+                <span class="succ">95%</span>
+                <div class="mini-bar"><div style="width: 71%"></div></div>
+              </div>
+            </div>
+            <div class="agent-summary" style="margin-top: 8px;">
+              <div class="stat"><span>Point commun</span><strong>lr ∈ [0.0005, 0.001]</strong></div>
+            </div>
+          </div>
+          <div class="card bad">
+            <h3 style="color: var(--bad);">Bottom 5 — moins bonnes configurations</h3>
+            <div>
+              <div class="config-row bad">
+                <span class="rank">12</span>
+                <span class="params">ε=0.8 · γ=0.99 · lr=0.005</span>
+                <span class="reward">-31.5</span>
+                <span class="succ">38%</span>
+                <div class="mini-bar"><div style="width: 4%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">11</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.005</span>
+                <span class="reward">-24.8</span>
+                <span class="succ">48%</span>
+                <div class="mini-bar"><div style="width: 12%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">10</span>
+                <span class="params">ε=0.8 · γ=0.95 · lr=0.005</span>
+                <span class="reward">-18.6</span>
+                <span class="succ">61%</span>
+                <div class="mini-bar"><div style="width: 20%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">9</span>
+                <span class="params">ε=0.9 · γ=0.95 · lr=0.005</span>
+                <span class="reward">-9.4</span>
+                <span class="succ">74%</span>
+                <div class="mini-bar"><div style="width: 30%"></div></div>
+              </div>
+              <div class="config-row bad">
+                <span class="rank">8</span>
+                <span class="params">ε=0.9 · γ=0.99 · lr=0.0005</span>
+                <span class="reward">2.18</span>
+                <span class="succ">90%</span>
+                <div class="mini-bar"><div style="width: 50%"></div></div>
+              </div>
+            </div>
+            <div class="agent-summary" style="margin-top: 8px;">
+              <div class="stat" style="background: var(--bad-soft); color: var(--bad);"><span>Point commun</span><strong>lr=0.005 (réseau diverge)</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>Lecture :</strong> avec un réseau de neurones, lr=0.005 est trop agressif :
+          les poids oscillent et le réseau ne converge pas. Et entraîner DQN coûte ~40s, contre ~1s pour Q-Learning tabulaire.
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Coût d'entraînement : ~41s par config DQN vs ~0.7s par config Q-Learning.</span>
+        <div class="progress" id="prog-8"></div>
+        <span>8 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 9 - Synthèse benchmark ========== -->
+    <section class="slide" id="slide-9">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 9 · Synthèse benchmark</div>
+          <h2>Meilleure configuration retenue par agent</h2>
+        </div>
+        <div class="slide-number">Étape 1 terminée</div>
+      </div>
+      <div class="slide-body">
+        <table>
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Meilleure configuration</th>
+              <th>Reward moyen</th>
+              <th>Succès</th>
+              <th>Train time</th>
+              <th>Lecture rapide</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Q-Learning</strong></td>
+              <td>ε=0.9 · γ=0.99 · lr=0.7 · 10k ép.</td>
+              <td><strong class="success">8.44</strong></td>
+              <td>100%</td>
+              <td>0.69s</td>
+              <td>Très fort, très stable, très rapide.</td>
+            </tr>
+            <tr>
+              <td><strong>SARSA</strong></td>
+              <td>ε=0.5 · γ=0.99 · lr=0.2 · 50k ép.</td>
+              <td>3.54</td>
+              <td>97%</td>
+              <td>1.96s</td>
+              <td>Valide mais plus prudent (on-policy).</td>
+            </tr>
+            <tr>
+              <td><strong>Monte Carlo</strong></td>
+              <td>ε=0.8 · γ=0.95 · lr=0.05 · 50k ép.</td>
+              <td>6.05</td>
+              <td>99%</td>
+              <td>3.55s</td>
+              <td>Sensible au learning rate.</td>
+            </tr>
+            <tr>
+              <td><strong>Deep Q-Learning</strong></td>
+              <td>ε=0.8 · γ=0.95 · lr=0.001 · 2k ép.</td>
+              <td>6.08</td>
+              <td>99%</td>
+              <td><span class="warning">41.42s</span></td>
+              <td>Bon, mais 60× plus coûteux.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="two-col-fill">
+          <div class="card">
+            <h3>Lecture des rewards</h3>
+            <div class="bars" style="margin-top: 6px;">
+              <div class="bar-row">
+                <span>Q-Learning</span>
+                <div class="bar-track"><div class="bar-fill good" style="width: 100%"></div></div>
+                <strong>8.44</strong>
+              </div>
+              <div class="bar-row">
+                <span>Deep Q-Learning</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 72%"></div></div>
+                <strong>6.08</strong>
+              </div>
+              <div class="bar-row">
+                <span>Monte Carlo</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 71.7%"></div></div>
+                <strong>6.05</strong>
+              </div>
+              <div class="bar-row">
+                <span>SARSA</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 41.9%"></div></div>
+                <strong>3.54</strong>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>À retenir</h3>
+            <ul>
+              <li><strong>Q-Learning</strong> est déjà le candidat le plus fort à la sortie du benchmark.</li>
+              <li>Mais le benchmark seul ne suffit pas : il a tuné chaque agent avec sa propre grille et son propre nombre d'épisodes.</li>
+              <li>Pour les comparer <strong>équitablement</strong>, on passe à l'étape 2 : <strong>mode temps limité, environnement inconnu</strong>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Données issues de best_params.json (mises à jour à chaque benchmark).</span>
+        <div class="progress" id="prog-9"></div>
+        <span>9 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 10 - Mode temps limité règles ========== -->
+    <section class="slide" id="slide-10">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 10 · Comparaison finale</div>
+          <h2>Mode temps limité : règles du jeu</h2>
+        </div>
+        <div class="slide-number">Étape 2</div>
+      </div>
+      <div class="slide-body">
+        <div class="two-col-fill">
+          <div class="card">
+            <h3>Ce qui est figé</h3>
+            <ul>
+              <li>On recharge les <strong>meilleurs paramètres sauvegardés</strong> pour chaque agent.</li>
+              <li>Aucun tuning pendant cette étape.</li>
+              <li>Le <strong>même seed inconnu</strong> est utilisé pour tous les agents au moment du test.</li>
+              <li>Les agents sont entraînés normalement, puis testés ensemble.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Ce qui est chronométré</h3>
+            <ul>
+              <li>Le <strong>test seulement</strong> est limité en temps.</li>
+              <li>Dans notre essai final : <strong>5 secondes par agent</strong>.</li>
+              <li>On compte le nombre d'épisodes terminés dans le temps imparti.</li>
+              <li>On compare ensuite reward moyen, taux de succès et nombre d'épisodes testés.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>Idée :</strong> mettre tous les agents dans une situation d'évaluation commune,
+          avec un environnement non connu à l'avance. C'est la "vraie" comparaison entre agents.
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Le mode temps limité répond à la question : quel agent gagne à la fin ?</span>
+        <div class="progress" id="prog-10"></div>
+        <span>10 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 11 - Mode temps limité résultat ========== -->
+    <section class="slide" id="slide-11">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 11 · Résultat final</div>
+          <h2>Mode temps limité : conclusion comparative</h2>
+        </div>
+        <div class="slide-number">5s par agent · seed inconnu</div>
+      </div>
+      <div class="slide-body">
+        <div class="two-col-fill">
+          <div class="card">
+            <h3>Scores obtenus</h3>
+            <table>
+              <thead>
+                <tr><th>Agent</th><th>Reward</th><th>Succès</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Q-Learning</strong></td><td><strong class="success">7.90</strong></td><td><strong>100.0%</strong></td></tr>
+                <tr><td>SARSA</td><td>6.61</td><td>99.4%</td></tr>
+                <tr><td>Deep Q-Learning</td><td>6.48</td><td>99.3%</td></tr>
+                <tr><td>Monte Carlo</td><td><span class="danger">-16.79</span></td><td><span class="danger">88.3%</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h3>Lecture visuelle</h3>
+            <div class="bars" style="margin-top: 6px;">
+              <div class="bar-row">
+                <span>Q-Learning</span>
+                <div class="bar-track"><div class="bar-fill good" style="width: 100%"></div></div>
+                <strong>7.90</strong>
+              </div>
+              <div class="bar-row">
+                <span>SARSA</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 83.7%"></div></div>
+                <strong>6.61</strong>
+              </div>
+              <div class="bar-row">
+                <span>Deep Q-Learning</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 82%"></div></div>
+                <strong>6.48</strong>
+              </div>
+              <div class="bar-row">
+                <span>Monte Carlo</span>
+                <div class="bar-track"><div class="bar-fill bad" style="width: 0%"></div></div>
+                <strong>-16.79</strong>
+              </div>
+            </div>
+            <p class="small" style="margin-top: 12px;">
+              Monte Carlo s'effondre sur un seed inconnu : sa politique est plus
+              fragile en généralisation que celle apprise par Q-Learning.
+            </p>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>Conclusion :</strong> le meilleur agent final est <span class="success">Q-Learning</span>,
+          car il combine le meilleur reward moyen et le meilleur taux de succès dans le cadre temps limité.
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>C'est la conclusion principale à retenir pour la présentation.</span>
+        <div class="progress" id="prog-11"></div>
+        <span>11 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 12 - Hyperparamètres combinés ========== -->
+    <section class="slide" id="slide-12">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 12 · Hyperparamètres</div>
+          <h2>Les trois leviers de Q-Learning : ε, γ, lr</h2>
+        </div>
+        <div class="slide-number">Vue d'ensemble</div>
+      </div>
+      <div class="slide-body">
+        <div class="three-col-fill">
+          <div class="param-block">
+            <div>
+              <span class="greek">ε</span>
+              <div class="pname">Epsilon — exploration</div>
+            </div>
+            <h3>Explorer ou exploiter ?</h3>
+            <p>Probabilité de choisir une action <strong>au hasard</strong> au lieu de la meilleure connue.</p>
+            <div class="row">
+              <div class="mini"><strong>Trop haut</strong> · Agent reste aléatoire trop longtemps</div>
+              <div class="mini"><strong>Trop bas</strong> · Agent se bloque sur une stratégie imparfaite</div>
+            </div>
+            <div class="observed">Q-Learning : ε=0.9 (élevé) a bien fonctionné</div>
+          </div>
+          <div class="param-block">
+            <div>
+              <span class="greek">γ</span>
+              <div class="pname">Gamma — horizon</div>
+            </div>
+            <h3>Court terme ou long terme ?</h3>
+            <p>Importance donnée aux <strong>récompenses futures</strong> dans la décision actuelle.</p>
+            <div class="row">
+              <div class="mini"><strong>γ élevé</strong> · Agent vise la récompense de fin d'épisode</div>
+              <div class="mini"><strong>γ faible</strong> · Agent devient myope et privilégie l'immédiat</div>
+            </div>
+            <div class="observed">Taxi-v3 : γ=0.99 (la grosse récompense est à la fin)</div>
+          </div>
+          <div class="param-block">
+            <div>
+              <span class="greek">α</span>
+              <div class="pname">Learning rate — vitesse</div>
+            </div>
+            <h3>À quelle vitesse apprendre ?</h3>
+            <p>Amplitude des <strong>mises à jour de la Q-table</strong> à chaque nouvelle expérience.</p>
+            <div class="row">
+              <div class="mini"><strong>Trop bas</strong> · Apprentissage lent, n'a pas le temps de converger</div>
+              <div class="mini"><strong>Trop haut</strong> · Apprentissage instable, sur-réaction au dernier épisode</div>
+            </div>
+            <div class="observed">Q-Learning : lr=0.7 ; Monte Carlo et DQN : valeurs bien plus prudentes</div>
+          </div>
+        </div>
+        <div class="callout">
+          Mémo simple : <strong>ε</strong> = explorer ou exploiter · <strong>γ</strong> = court ou long terme · <strong>α</strong> = vitesse d'apprentissage.
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Trois questions distinctes, trois paramètres distincts.</span>
+        <div class="progress" id="prog-12"></div>
+        <span>12 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 13 - Librairies ========== -->
+    <section class="slide" id="slide-13">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 13 · Stack technique</div>
+          <h2>Librairies utilisées</h2>
+        </div>
+        <div class="slide-number">requirements.txt</div>
+      </div>
+      <div class="slide-body">
+        <div class="lib-grid">
+          <div class="lib-card">
+            <div class="lib-role">Environnement</div>
+            <div class="lib-name">gymnasium</div>
+            <p>Fournit l'environnement <code>Taxi-v3</code> : 500 états, 6 actions, fonctions <code>reset</code>, <code>step</code>, <code>render</code>. Standard de l'écosystème RL.</p>
+          </div>
+          <div class="lib-card">
+            <div class="lib-role">Calcul numérique</div>
+            <div class="lib-name">numpy</div>
+            <p>Tableaux pour les Q-tables (500×6) des agents tabulaires. Opérations vectorisées rapides pour les mises à jour Bellman.</p>
+          </div>
+          <div class="lib-card">
+            <div class="lib-role">Deep Learning</div>
+            <div class="lib-name">torch</div>
+            <p>Réseau de neurones pour Deep Q-Learning : couches denses, optimiseur Adam, calcul automatique des gradients.</p>
+          </div>
+          <div class="lib-card">
+            <div class="lib-role">Visualisation</div>
+            <div class="lib-name">matplotlib</div>
+            <p>Génération des graphiques inclus dans le rapport HTML : courbes d'apprentissage, comparaisons de rewards.</p>
+          </div>
+          <div class="lib-card">
+            <div class="lib-role">Affichage tabulaire</div>
+            <div class="lib-name">tabulate</div>
+            <p>Mise en forme des tableaux de résultats dans le terminal (récompense moyenne, nombre de pas, taux de succès).</p>
+          </div>
+          <div class="lib-card">
+            <div class="lib-role">CLI interactive</div>
+            <div class="lib-name">questionary</div>
+            <p>Menus interactifs dans le terminal : choix du mode (Manuel, Benchmark, Battle, Temps limité), saisie des hyperparamètres.</p>
+          </div>
+          <div class="lib-card">
+            <div class="lib-role">Graphes terminal</div>
+            <div class="lib-name">plotext</div>
+            <p>Graphiques en ASCII directement dans le terminal pendant les modes Battle et Temps limité, sans ouvrir de fenêtre.</p>
+          </div>
+          <div class="lib-card">
+            <div class="lib-role">Barre de progression</div>
+            <div class="lib-name">tqdm</div>
+            <p>Suivi en temps réel de l'entraînement : nombre d'épisodes, vitesse, ETA. Indispensable pour les longs runs.</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>8 dépendances, toutes pinned dans requirements.txt — installation reproductible.</span>
+        <div class="progress" id="prog-13"></div>
+        <span>13 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+    <!-- ========== SLIDE 14 - Synthèse finale ========== -->
+    <section class="slide" id="slide-14">
+      <div class="slide-card">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Slide 14 · Synthèse</div>
+          <h2>Lien avec nos résultats, synthèse et limites</h2>
+        </div>
+        <div class="slide-number">Ce qu'on retient</div>
+      </div>
+      <div class="slide-body">
+        <div class="two-col-fill">
+          <div class="card">
+            <h3>Comportement observé par agent</h3>
+            <ul>
+              <li><strong>Q-Learning</strong> : a bien supporté un ε élevé et un γ élevé. Le plus rapide à entraîner et le plus performant.</li>
+              <li><strong>SARSA</strong> (on-policy) : a eu besoin de plus d'épisodes et d'une exploration plus modérée pour atteindre 95% de succès.</li>
+              <li><strong>Monte Carlo</strong> : très sensible au learning rate. Les top 5 ont tous lr=0.05.</li>
+              <li><strong>Deep Q-Learning</strong> : performant, mais coût d'entraînement 60× supérieur à Q-Learning tabulaire.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Synthèse finale</h3>
+            <ul>
+              <li><strong>Le benchmark</strong> a permis de trouver une bonne configuration pour chaque agent.</li>
+              <li><strong>Le mode temps limité</strong> montre que <span class="success">Q-Learning</span> est le meilleur modèle final.</li>
+              <li><strong>Limite</strong> : DQN est coûteux pour un environnement discret comme Taxi-v3. Il devient pertinent quand l'espace d'états explose.</li>
+              <li><strong>Suite possible</strong> : tester plusieurs seeds pour renforcer la robustesse, ou comparer sur d'autres environnements.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>Message final :</strong> pour un environnement discret et de petite taille comme Taxi-v3,
+          les <strong>méthodes tabulaires</strong>, en particulier <strong>Q-Learning</strong>,
+          restent les plus adaptées. Le réseau de neurones n'apporte pas d'avantage ici.
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Fin de présentation — questions ?</span>
+        <div class="progress" id="prog-14"></div>
+        <span>14 / 14</span>
+      </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <script>
+    (function () {
+      const deck = document.getElementById('deck');
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const total = slides.length;
+      let current = 0;
+      let scrolling = false;
+
+      // Build progress dots inside each slide footer
+      slides.forEach((_, slideIdx) => {
+        const prog = document.getElementById('prog-' + (slideIdx + 1));
+        if (!prog) return;
+        for (let i = 0; i < total; i++) {
+          const dot = document.createElement('span');
+          if (i === slideIdx) dot.classList.add('active');
+          prog.appendChild(dot);
+        }
+      });
+
+      function goTo(idx) {
+        if (idx < 0) idx = 0;
+        if (idx >= total) idx = total - 1;
+        current = idx;
+        scrolling = true;
+        slides[current].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => { scrolling = false; }, 600);
+      }
+
+      // Keep `current` in sync with manual scrolling
+      deck.addEventListener('scroll', () => {
+        if (scrolling) return;
+        const idx = Math.round(deck.scrollTop / window.innerHeight);
+        if (idx !== current && idx >= 0 && idx < total) current = idx;
+      }, { passive: true });
+
+      document.addEventListener('keydown', (e) => {
+        const k = e.key;
+        if (k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown' || k === ' ') {
+          e.preventDefault();
+          goTo(current + 1);
+        } else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') {
+          e.preventDefault();
+          goTo(current - 1);
+        } else if (k === 'Home') {
+          e.preventDefault();
+          goTo(0);
+        } else if (k === 'End') {
+          e.preventDefault();
+          goTo(total - 1);
+        } else if (/^[0-9]$/.test(k)) {
+          const n = parseInt(k, 10);
+          if (n >= 1 && n <= total) goTo(n - 1);
+        }
+      });
+
+      // Hide nav hint after a few seconds
+      setTimeout(() => {
+        const hint = document.querySelector('.nav-hint');
+        if (hint) {
+          hint.style.transition = 'opacity 1s';
+          hint.style.opacity = '0';
+        }
+      }, 5000);
+    })();
+  </script>
+</body>
+</html>

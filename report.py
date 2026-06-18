@@ -1,5 +1,6 @@
 import base64
 from io import BytesIO
+import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -319,7 +320,7 @@ def generate_analysis(results):
     return "\n".join(sections)
 
 
-def generate_report(results):
+def generate_report(results, output_path="report.html", report_title="Rapport comparatif des agents RL - Taxi-v3"):
     """
     Génère un rapport HTML avec des graphiques comparatifs.
 
@@ -459,7 +460,7 @@ def generate_report(results):
     </style>
 </head>
 <body>
-    <h1>Rapport comparatif des agents RL - Taxi-v3</h1>
+    <h1>{report_title}</h1>
     <p style="text-align:center; color:#666;">Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M:%S')}</p>
 
     <h2>Résumé des résultats de test</h2>
@@ -518,7 +519,9 @@ def generate_report(results):
 </body>
 </html>"""
 
-    output_path = "report.html"
+    output_dir = os.path.dirname(output_path)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
     return output_path
